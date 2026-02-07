@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <!-- 核心：禁止缩放，适配刘海屏 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>11s Chat</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
@@ -21,22 +22,21 @@
             --shadow-pop: 0 4px 16px rgba(44, 36, 27, 0.12);
         }
 
-        /* 全局重置：解决留白的核心 */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+        /* 布局核心：强制全屏，无视内容溢出 */
         html, body {
+            margin: 0; padding: 0;
             width: 100%; height: 100%;
-            overflow: hidden; /* 禁止出现滚动条 */
+            overflow: hidden; 
             background-color: var(--bg-paper);
             font-family: "Georgia", "Songti SC", "Microsoft YaHei", serif;
-            position: fixed; top: 0; left: 0; /* 强制固定 */
+            display: block; /* 修复 flex center 导致的留白 */
         }
 
         #app { 
-            width: 100%; height: 100%; 
-            display: flex; 
-            background: #fff; 
-            position: absolute; inset: 0; /* 撑满父容器 */
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; background: #fff; width: 100%; height: 100%;
         }
 
         /* --- 侧边栏 --- */
@@ -77,11 +77,12 @@
 
         /* --- Main Chat --- */
         .main-chat {
-            flex: 1; /* 占据剩余所有宽度 */
+            flex: 1; /* 自动占据剩余宽度 */
             display: flex; flex-direction: column; position: relative; z-index: 10;
             background-color: var(--bg-paper);
             background-image: radial-gradient(#d4cbb8 1px, transparent 1px); background-size: 24px 24px;
-            width: 100%; min-width: 0; height: 100%;
+            width: 100%; min-width: 0; /* 防止 flex 子项溢出 */
+            height: 100%;
         }
         .chat-header {
             height: 64px; padding: 0 20px; border-bottom: 1px solid var(--border);
@@ -101,6 +102,7 @@
 
         .chat-area { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 16px; scroll-behavior: auto; }
         
+        /* 消息行 */
         .msg-row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .msg-row.sent { align-self: flex-end; flex-direction: row-reverse; }
@@ -131,22 +133,47 @@
         .read-icon { font-size: 14px; line-height: 1; color: #aaa; transition: color 0.3s; }
         .read-icon.read { color: var(--blue-read); }
 
-        /* Footer */
+        /* --- Footer (重点修复：手机端发送键可见) --- */
         .chat-footer {
             padding: 10px 15px; background: #fff; border-top: 1px solid var(--border);
-            display: flex; align-items: flex-end; gap: 8px; min-height: 70px;
-            padding-bottom: max(15px, env(safe-area-inset-bottom)); flex-shrink: 0;
+            display: flex; align-items: flex-end; gap: 8px; 
+            min-height: 60px;
+            /* 关键：底部留出安全距离，但不要过多 */
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+            flex-shrink: 0; /* 禁止被压缩 */
             position: relative;
+            width: 100%; /* 填满 */
         }
-        .tool-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: var(--text-light); font-size: 22px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        
+        .tool-btn { 
+            width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; 
+            color: var(--text-light); font-size: 22px; cursor: pointer; flex-shrink: 0; 
+            display: flex; align-items: center; justify-content: center; transition: 0.2s; 
+        }
         .tool-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
         .tool-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(239, 68, 68, 0.1); }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
-        .input-wrapper { flex: 1; background: #fdfdfd; border: 1px solid var(--border); border-radius: 24px; padding: 6px 14px; min-height: 44px; display: flex; align-items: center; gap: 5px; }
-        .msg-input { flex:1; border: none; background: transparent; outline: none; font-size: 16px; font-family: inherit; resize: none; max-height: 100px; line-height: 22px; padding: 4px 0; }
+        /* 输入框容器：关键是 min-width: 0 */
+        .input-wrapper { 
+            flex: 1; 
+            min-width: 0; /* 允许收缩，防止把右边按钮顶出去 */
+            background: #fdfdfd; border: 1px solid var(--border); border-radius: 24px; 
+            padding: 6px 14px; min-height: 44px; display: flex; align-items: center; 
+        }
+        .msg-input { 
+            width: 100%; border: none; background: transparent; outline: none; 
+            font-size: 16px; font-family: inherit; resize: none; max-height: 100px; 
+            line-height: 22px; padding: 4px 0; 
+        }
         
-        .send-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--btn-primary); color: #fff; border: none; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(92, 75, 60, 0.2); transition: 0.2s; }
+        /* 发送按钮：禁止压缩 */
+        .send-btn { 
+            width: 44px; height: 44px; border-radius: 50%; background: var(--btn-primary); 
+            color: #fff; border: none; font-size: 20px; cursor: pointer; flex-shrink: 0; 
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 4px 10px rgba(92, 75, 60, 0.2); transition: 0.2s; 
+        }
         .send-btn:active { transform: scale(0.95); }
 
         .record-confirm { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 24px; padding: 0 20px; height: 44px; border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
@@ -156,10 +183,14 @@
         /* 移动端适配 */
         @media (max-width: 768px) {
             .sidebar { width: 100%; position: absolute; height: 100%; }
-            .main-chat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 20; }
+            .main-chat { 
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                z-index: 20; 
+            }
             .main-chat.active { transform: translateX(0); }
             .back-btn { display: block; }
-            .chat-footer { padding: 10px; gap: 5px; }
+            .chat-footer { padding: 10px; gap: 5px; } /* 减少间距 */
             .msg-row { max-width: 90%; }
         }
 
@@ -234,8 +265,8 @@
                 
                 <div v-if="modalType === 'about'">
                     <i class="bi bi-feather" style="font-size:32px; color:var(--text-main);"></i>
-                    <p style="margin-top:10px; font-weight:bold;">11s Chat v5.3.0</p>
-                    <p class="version-info">Secure & Parchment UI</p>
+                    <p style="margin-top:10px; font-weight:bold;">11s Chat v6.1.0</p>
+                    <p class="version-info">Fixed Mobile Layout & Removed Emoji</p>
                 </div>
 
                 <div style="color:var(--danger); font-size:13px; margin-top:10px;" v-if="modalError">{{ modalError }}</div>
@@ -309,7 +340,6 @@
                 </div>
                 
                 <div class="chat-area" id="msg-box">
-                    <TransitionGroup name="msg-anim">
                     <div v-for="msg in messages" :key="msg.id" class="msg-row" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
                         <div v-if="msg.sender_id !== currentUser.id" class="msg-avatar">
                             {{ getSenderInitial(msg.sender_id) }}
@@ -342,7 +372,6 @@
                             </div>
                         </div>
                     </div>
-                    </TransitionGroup>
                 </div>
 
                 <div class="chat-footer">
@@ -495,7 +524,7 @@
                         us?.forEach(u => allUsersCache.value[u.id] = u.username);
                     }
                 }
-                scrollToBottom();
+                nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight; });
             };
 
             const sendMessage = async () => {
@@ -504,7 +533,7 @@
                 const payload = { sender_id: currentUser.value.id, content, msg_type: 'text' };
                 if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id; else payload.receiver_id = currentChat.value.id;
                 const tmp = { ...payload, id: Date.now(), created_at: new Date().toISOString(), is_read: false };
-                messages.value.push(tmp); scrollToBottom();
+                messages.value.push(tmp); nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight; });
                 await sb.from('chat_messages').insert(payload);
             };
 
@@ -590,7 +619,7 @@
                     if(action.includes('Friend')) setTimeout(loadFriends, 500); else setTimeout(loadGroups, 500);
                 } catch(e) { 
                     modalError.value = "操作失败: " + e.message;
-                    alert("操作失败: " + e.message);
+                    alert("操作失败 (可能权限不足): " + e.message);
                 }
                 loading.value = false;
             };
@@ -610,7 +639,7 @@
                             if(currentChat.value.type === 'friend' && (msg.sender_id === currentChat.value.id || msg.sender_id === currentUser.value.id) && !msg.group_id) isRelevant = true;
                         }
                         if(isRelevant) {
-                            if(!messages.value.some(m => m.id === msg.id)) { messages.value.push(msg); scrollToBottom(); }
+                            if(!messages.value.some(m => m.id === msg.id)) { messages.value.push(msg); nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight+100; }); }
                             if(msg.sender_id !== currentUser.value.id) markRead();
                         }
                         loadFriends();
@@ -627,7 +656,7 @@
                 const name = `voice_${Date.now()}.webm`;
                 const payload = { sender_id: currentUser.value.id, msg_type: 'voice', file_url: '', file_name: duration+'s' };
                 if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id; else payload.receiver_id = currentChat.value.id;
-                messages.value.push({ ...payload, id: Date.now(), created_at: new Date().toISOString() }); scrollToBottom(); voiceBlob.value = null;
+                messages.value.push({ ...payload, id: Date.now(), created_at: new Date().toISOString() }); nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight+100; }); voiceBlob.value = null;
                 try {
                     await sb.storage.from('chat-uploads').upload(name, voiceBlob.value);
                     const { data } = sb.storage.from('chat-uploads').getPublicUrl(name);
@@ -661,7 +690,6 @@
             };
             const stopAudio = () => { if(currentAudio){currentAudio.pause();currentAudio=null;} clearInterval(progInterval); playingId.value=null; playProgress.value=0; };
             const triggerFile = () => document.getElementById('fileInput').click();
-            
             const closePopups = () => { ctxMenu.value.show = false; };
             const openCtxMenu = (e, msg) => { if(msg.sender_id===currentUser.value.id && !msg.is_recalled) { ctxMenu.value={show:true, x:e.clientX, y:e.clientY, msg}; } };
             const handleMobileCtx = (e, msg) => { if(isMobile.value && msg.sender_id===currentUser.value.id) { e.preventDefault(); openCtxMenu(e, msg); } };
@@ -670,7 +698,6 @@
             const handleTouchMove = () => clearTimeout(touchTimer);
             const recallMsg = async () => { await sb.from('chat_messages').update({is_recalled:true}).eq('id', ctxMenu.value.msg.id); ctxMenu.value.show=false; };
             const deleteMsg = () => { messages.value=messages.value.filter(m=>m.id!==ctxMenu.value.msg.id); ctxMenu.value.show=false; };
-            const scrollToBottom = () => nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight+100; });
             const formatTime = (iso, short) => { const d = new Date(iso); if(short) return `${d.getMonth()+1}/${d.getDate()}`; return `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`; };
             const getPreview = (m) => !m ? '' : (m.is_recalled ? '撤回' : (m.msg_type==='text'?m.content:`[${m.msg_type}]`));
 
@@ -680,7 +707,7 @@
                 handleLogin, logout, openModal, closeModal, addFriend, createGroup, inviteMember, updateProfile, updateAlias, openChat, closeChat, promptAction, confirmActionCallback, openFriendCtx,
                 sendMessage, triggerFile, handleFile, startRecord, stopRecord, playDraftVoice, uploadVoice, toggleVoice,
                 openCtxMenu, handleTouchStart, handleTouchEnd, handleTouchMove, recallMsg, deleteMsg, closePopups, previewImg: (u)=>previewUrl.value=u,
-                formatTime, getPreview, markRead, onImgLoad: scrollToBottom, getSenderInitial, getSenderName
+                formatTime, getPreview, markRead, getSenderInitial, getSenderName
             };
         }
     }).mount('#app');
