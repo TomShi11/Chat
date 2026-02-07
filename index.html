@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11s Chat</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            --bg-paper: #fdf6e3; --bg-sidebar: #f5eacb; --bg-accent: #d4c5a3;     
+            --text-main: #4a3b2a; --text-light: #8b7e74; --border: #dcd3c1;
+            --msg-sent: #eaddcf; --msg-received: #ffffff;  
+            --btn-primary: #5b4636; --btn-hover: #423226; --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-paper); color: var(--text-main); font-family: "Georgia", "Songti SC", serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        #app { width: 100%; height: 100%; display: flex; }
+
+        /* 侧边栏 */
+        .sidebar { width: 280px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; z-index: 10; }
+        .brand { font-size: 22px; font-weight: bold; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .section-title { font-size: 12px; text-transform: uppercase; color: var(--text-light); margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .add-btn { cursor: pointer; transition: 0.2s; } .add-btn:hover { transform: scale(1.2); color: #000; }
+        .friend-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+        .friend-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; }
+        .friend-item:hover { background-color: rgba(255,255,255,0.5); }
+        .friend-item.active { background-color: #fff; border-color: var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .avatar { width: 36px; height: 36px; background: var(--bg-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; text-transform: uppercase; }
+        .user-info { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; }
+
+        /* 聊天区 */
+        .main-chat { flex: 1; display: flex; flex-direction: column; background-image: radial-gradient(#dccdb3 1px, transparent 1px); background-size: 24px 24px; }
+        .chat-header { padding: 18px 30px; border-bottom: 1px solid var(--border); font-size: 18px; font-weight: bold; background: rgba(253, 246, 227, 0.85); backdrop-filter: blur(10px); }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
+        .message-bubble { max-width: 70%; padding: 12px 18px; border-radius: 16px; font-size: 15px; line-height: 1.5; box-shadow: 2px 2px 6px rgba(0,0,0,0.03); word-wrap: break-word; }
+        .message-bubble.sent { align-self: flex-end; background-color: var(--msg-sent); border-bottom-right-radius: 2px; }
+        .message-bubble.received { align-self: flex-start; background-color: var(--msg-received); border-bottom-left-radius: 2px; }
+        .msg-time { font-size: 10px; opacity: 0.5; margin-top: 4px; text-align: right; display: block; }
+        .chat-input-area { padding: 20px 30px; border-top: 1px solid var(--border); background: rgba(253, 246, 227, 0.9); display: flex; gap: 12px; }
+        .input-box { flex: 1; border: 1px solid var(--border); background: #fff; padding: 14px 18px; border-radius: 24px; font-size: 15px; outline: none; }
+        .input-box:focus { border-color: var(--text-light); box-shadow: 0 0 0 3px rgba(91, 70, 54, 0.05); }
+        .send-btn { background: var(--btn-primary); color: #fff; border: none; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+
+        /* 弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 59, 42, 0.3); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        .modal-card { background: #fffbf0; padding: 40px; width: 360px; border-radius: 16px; box-shadow: 0 20px 40px rgba(91, 70, 54, 0.2); text-align: center; border: 1px solid var(--border); }
+        .modal-input { width: 100%; padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; background: #fff; }
+        .modal-btn { width: 100%; margin-top: 10px; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .modal-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+        .error-msg { color: #dc2626; font-size: 13px; margin-top: 15px; min-height: 18px; line-height: 1.4; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.4; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 登录/注册弹窗 -->
+    <div class="modal-overlay" v-if="!currentUser">
+        <div class="modal-card">
+            <h2 style="margin-bottom: 10px; color: var(--text-main);">11s Chat</h2>
+            <p style="margin-bottom: 20px; font-size: 14px; opacity: 0.7;">
+                {{ isRegistering ? '创建一个新账号' : '登录你的账号' }}
+            </p>
+            
+            <input type="text" class="modal-input" v-model="loginForm.username" placeholder="用户名" @keyup.enter="handleLogin">
+            <input type="password" class="modal-input" v-model="loginForm.password" placeholder="密码" @keyup.enter="handleLogin">
+            
+            <button class="modal-btn" @click="handleLogin" :disabled="isLoading">
+                {{ isLoading ? '处理中...' : (isRegistering ? '注册' : '登录') }}
+            </button>
+            
+            <!-- 错误信息显示区 -->
+            <div class="error-msg">{{ errorMessage }}</div>
+            
+            <div style="margin-top: 15px; font-size: 12px; color: #888; cursor: pointer;" @click="toggleMode">
+                {{ isRegistering ? '已有账号？去登录' : '没有账号？去注册' }}
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加好友弹窗 -->
+    <div class="modal-overlay" v-if="showAddFriendModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 15px;">添加好友</h3>
+            <input type="text" class="modal-input" v-model="friendNameInput" placeholder="输入对方用户名..." @keyup.enter="addFriend">
+            <button class="modal-btn" @click="addFriend" :disabled="isLoading">
+                {{ isLoading ? '查找中...' : '添加' }}
+            </button>
+            <div class="error-msg">{{ friendError }}</div>
+            <button class="modal-btn" style="background:transparent; color:#666; margin-top:0;" @click="showAddFriendModal = false">取消</button>
+        </div>
+    </div>
+
+    <!-- 主界面 -->
+    <template v-if="currentUser">
+        <div class="sidebar">
+            <div class="brand"><i class="bi bi-feather"></i> 11s Chat</div>
+            <div class="section-title">联系人 <i class="bi bi-plus-circle-fill add-btn" @click="showAddFriendModal = true; friendError=''"></i></div>
+            
+            <div class="friend-list">
+                <div v-for="friend in friends" :key="friend.id" class="friend-item" :class="{ active: currentChat?.id === friend.id }" @click="selectChat(friend)">
+                    <div class="avatar">{{ friend.username.substring(0,1) }}</div>
+                    <div>{{ friend.username }}</div>
+                </div>
+                <div v-if="friends.length === 0" style="text-align:center; margin-top:30px; font-size:13px; color:#999;">
+                    暂无好友<br>点击 + 号添加
+                </div>
+            </div>
+
+            <div class="user-info">
+                <div class="avatar" style="background:var(--text-main)">{{ currentUser.username.substring(0,1) }}</div>
+                <div style="flex:1;">
+                    <div style="font-weight:bold;">{{ currentUser.username }}</div>
+                    <div style="font-size:11px; cursor:pointer; opacity:0.6;" @click="logout">退出</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-chat">
+            <template v-if="currentChat">
+                <div class="chat-header">{{ currentChat.username }}</div>
+                <div class="chat-messages" id="msg-container">
+                    <div v-for="msg in messages" :key="msg.id" class="message-bubble" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
+                        {{ msg.content }}
+                        <span class="msg-time">{{ formatTime(msg.created_at) }}</span>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" class="input-box" v-model="newMessage" placeholder="写信..." @keyup.enter="sendMessage">
+                    <button class="send-btn" @click="sendMessage"><i class="bi bi-send-fill"></i></button>
+                </div>
+            </template>
+            <template v-else>
+                <div class="empty-state">
+                    <i class="bi bi-chat-square-quote empty-icon"></i>
+                    <p>选择一个好友开始聊天</p>
+                </div>
+            </template>
+        </div>
+    </template>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://fznfneqwxzuwtognuoeo.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_UlNMDLt4OaYIX-_lCezGwA_8jIQLhFO'; 
+    
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const { createApp, ref, onMounted, nextTick } = Vue;
+
+    createApp({
+        setup() {
+            const currentUser = ref(null);
+            const loginForm = ref({ username: '', password: '' });
+            const isRegistering = ref(false);
+            const isLoading = ref(false);
+            const errorMessage = ref('');
+            const friendError = ref('');
+            const friends = ref([]);
+            const currentChat = ref(null);
+            const messages = ref([]);
+            const newMessage = ref('');
+            const showAddFriendModal = ref(false);
+            const friendNameInput = ref('');
+
+            onMounted(() => {
+                if (typeof supabase === 'undefined') {
+                    errorMessage.value = "Supabase 加载失败，请刷新";
+                    return;
+                }
+                const saved = localStorage.getItem('11s_user');
+                if (saved) {
+                    try { currentUser.value = JSON.parse(saved); loadFriends(); setupRealtime(); } catch(e) {}
+                }
+            });
+
+            const handleLogin = async () => {
+                errorMessage.value = ''; // 清除旧错误
+                if(isLoading.value) return;
+                
+                const { username, password } = loginForm.value;
+                if (!username || !password) { errorMessage.value = "请输入用户名和密码"; return; }
+                
+                isLoading.value = true;
+                try {
+                    // 注册
+                    if (isRegistering.value) {
+                        const { data: exist } = await sb.from('chat_users').select('id').eq('username', username).maybeSingle();
+                        if (exist) throw new Error("该用户名已被占用");
+                        
+                        const { data: newUser, error } = await sb.from('chat_users').insert({ username, password }).select().single();
+                        // 捕捉数据库结构错误
+                        if (error) {
+                            if (error.message.includes('password') || error.code === 'PGRST204') {
+                                throw new Error("数据库未更新！请去 Supabase SQL Editor 运行修复脚本。");
+                            }
+                            throw error;
+                        }
+                        loginSuccess(newUser);
+                    } else {
+                        // 登录
+                        const { data: user, error } = await sb.from('chat_users').select('*').eq('username', username).maybeSingle();
+                        
+                        // 捕捉数据库结构错误
+                        if (error) {
+                            if (error.message.includes('password') || error.code === 'PGRST204') {
+                                throw new Error("数据库未更新！请去 Supabase SQL Editor 运行修复脚本。");
+                            }
+                            throw error;
+                        }
+
+                        if (!user) throw new Error("用户不存在，请先注册");
+                        if (user.password !== password) throw new Error("密码错误");
+                        
+                        loginSuccess(user);
+                    }
+                } catch (e) {
+                    console.error("Login Err:", e);
+                    errorMessage.value = e.message || "操作失败，请检查网络";
+                } finally {
+                    isLoading.value = false;
+                }
+            };
+
+            const loginSuccess = (user) => {
+                currentUser.value = user;
+                localStorage.setItem('11s_user', JSON.stringify(user));
+                loadFriends();
+                setupRealtime();
+                loginForm.value = { username: '', password: '' };
+                errorMessage.value = '';
+            };
+
+            const logout = () => {
+                localStorage.removeItem('11s_user');
+                currentUser.value = null;
+                currentChat.value = null;
+                sb.removeAllChannels();
+            };
+
+            const toggleMode = () => {
+                isRegistering.value = !isRegistering.value;
+                loginForm.value = { username: '', password: '' };
+                errorMessage.value = '';
+            };
+
+            const loadFriends = async () => {
+                const { data: f1 } = await sb.from('chat_friends').select('friend_id').eq('user_id', currentUser.value.id);
+                const { data: f2 } = await sb.from('chat_friends').select('user_id').eq('friend_id', currentUser.value.id);
+                const ids = [...new Set([...(f1||[]).map(f => f.friend_id), ...(f2||[]).map(f => f.user_id)])];
+
+                if (ids.length > 0) {
+                    const { data } = await sb.from('chat_users').select('*').in('id', ids);
+                    friends.value = data || [];
+                } else {
+                    friends.value = [];
+                }
+            };
+
+            const addFriend = async () => {
+                if (!friendNameInput.value) return;
+                isLoading.value = true;
+                friendError.value = '';
+                try {
+                    const { data: target } = await sb.from('chat_users').select('*').eq('username', friendNameInput.value).maybeSingle();
+                    if (!target) throw new Error("找不到该用户");
+                    if (target.id === currentUser.value.id) throw new Error("不能添加自己");
+
+                    const { error } = await sb.from('chat_friends').insert({ user_id: currentUser.value.id, friend_id: target.id });
+                    if (error) throw new Error("添加失败（可能已经是好友了）");
+                    
+                    showAddFriendModal.value = false;
+                    friendNameInput.value = '';
+                    loadFriends();
+                } catch (e) {
+                    friendError.value = e.message;
+                } finally {
+                    isLoading.value = false;
+                }
+            };
+
+            const selectChat = (friend) => {
+                currentChat.value = friend;
+                loadMessages();
+            };
+
+            const loadMessages = async () => {
+                if (!currentChat.value) return;
+                const { data } = await sb.from('chat_messages')
+                    .select('*')
+                    .or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`)
+                    .order('created_at', { ascending: true });
+                
+                messages.value = (data || []).filter(m => 
+                    (m.sender_id === currentUser.value.id && m.receiver_id === currentChat.value.id) ||
+                    (m.sender_id === currentChat.value.id && m.receiver_id === currentUser.value.id)
+                );
+                scrollToBottom();
+            };
+
+            const sendMessage = async () => {
+                if (!newMessage.value.trim() || !currentChat.value) return;
+                const content = newMessage.value;
+                newMessage.value = '';
+                await sb.from('chat_messages').insert({
+                    sender_id: currentUser.value.id,
+                    receiver_id: currentChat.value.id,
+                    content: content
+                });
+            };
+
+            const setupRealtime = () => {
+                sb.removeAllChannels();
+                sb.channel('public:chat_messages')
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
+                    const msg = payload.new;
+                    if (currentChat.value && 
+                        ((msg.sender_id === currentUser.value.id && msg.receiver_id === currentChat.value.id) ||
+                         (msg.sender_id === currentChat.value.id && msg.receiver_id === currentUser.value.id))) {
+                        messages.value.push(msg);
+                        scrollToBottom();
+                    }
+                })
+                .subscribe();
+            };
+
+            const scrollToBottom = () => {
+                nextTick(() => {
+                    const container = document.getElementById('msg-container');
+                    if (container) container.scrollTop = container.scrollHeight;
+                });
+            };
+
+            const formatTime = (iso) => {
+                const d = new Date(iso);
+                return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+            };
+
+            return {
+                currentUser, loginForm, isRegistering, isLoading, errorMessage, friendError, friends, currentChat, messages, newMessage,
+                showAddFriendModal, friendNameInput,
+                handleLogin, logout, toggleMode, addFriend, selectChat, sendMessage, formatTime
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
