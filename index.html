@@ -18,19 +18,22 @@
             --btn-primary: #5c4b3c; --btn-hover: #3e3228;
             --blue-read: #3498db; --danger: #ef4444; --success: #2ecc71;
             --radius: 12px;
-            --shadow-pop: 0 4px 16px rgba(44, 36, 27, 0.12);
+            --shadow-pop: 0 8px 30px rgba(44, 36, 27, 0.15);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        body {
-            background-color: var(--bg-paper); color: var(--text-main);
+        /* 布局终极修复：使用 absolute 撑满屏幕，无视滚动条 */
+        html, body { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background-color: var(--bg-paper);
             font-family: "Georgia", "Songti SC", "Microsoft YaHei", serif;
-            height: 100vh; height: 100dvh; width: 100vw;
-            display: block; overflow: hidden;
         }
 
-        #app { width: 100%; height: 100%; display: flex; position: relative; background: #fff; }
+        #app { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; background: #fff; width: 100%; height: 100%;
+        }
 
         /* --- Sidebar --- */
         .sidebar {
@@ -42,38 +45,38 @@
         .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-left: auto; transition: 0.3s; }
         .conn-dot.online { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
         
-        /* 侧边栏 Tabs */
         .sidebar-tabs { display: flex; margin-bottom: 15px; border-bottom: 2px solid rgba(0,0,0,0.05); }
         .sb-tab { flex: 1; text-align: center; padding: 8px; cursor: pointer; font-size: 14px; font-weight: bold; color: var(--text-light); transition: 0.2s; }
         .sb-tab.active { color: var(--text-main); border-bottom: 2px solid var(--btn-primary); }
-        .sb-tab:hover { background: rgba(0,0,0,0.03); }
 
         .list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: var(--text-light); padding: 0 5px; }
-        .icon-btn { cursor: pointer; padding: 5px; font-size: 18px; transition: 0.2s; } .icon-btn:hover { color: var(--text-main); transform: scale(1.1); }
+        .icon-btn { cursor: pointer; padding: 5px; font-size: 18px; transition: 0.2s; color: var(--text-light); } 
+        .icon-btn:hover { color: var(--text-main); transform: scale(1.1); }
 
-        .chat-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
-        .list-item { padding: 10px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; }
-        .list-item:hover { background: rgba(255,255,255,0.4); }
-        .list-item.active { background: #fff; border-color: rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .friend-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
+        .friend-item { padding: 12px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; position: relative; }
+        .friend-item:hover { background: rgba(255,255,255,0.4); }
+        .friend-item.active { background: #fff; border-color: rgba(0,0,0,0.05); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         
-        .avatar { 
-            width: 42px; height: 42px; background: var(--bg-accent); border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; font-weight: bold; 
-            color: #fff; font-size: 16px; flex-shrink: 0; text-transform: uppercase;
-        }
-        .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-        .name { font-weight: bold; font-size: 15px; }
-        .preview { font-size: 12px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
-        .badge { min-width: 18px; height: 18px; background: var(--danger); color: white; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; padding: 0 5px; }
+        .avatar { width: 42px; height: 42px; background: var(--bg-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 16px; flex-shrink: 0; text-transform: uppercase; }
+        .friend-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .friend-name-row { display: flex; align-items: baseline; gap: 6px; }
+        .friend-name { font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .friend-realname { font-size: 11px; color: var(--text-light); opacity: 0.8; }
+        .friend-top { display: flex; justify-content: space-between; align-items: center; }
+        .friend-time { font-size: 10px; opacity: 0.5; font-family: sans-serif; flex-shrink: 0;}
+        .friend-msg { font-size: 12px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
+        .unread-dot { min-width: 18px; height: 18px; background: var(--danger); color: white; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; padding: 0 5px; margin-left: 5px; }
 
         .user-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; padding-bottom: env(safe-area-inset-bottom); }
+        .user-name { font-weight: bold; font-size: 14px; }
 
         /* --- Main Chat --- */
         .main-chat {
             flex: 1; display: flex; flex-direction: column; position: relative; z-index: 10;
             background-color: var(--bg-paper);
             background-image: radial-gradient(#d4cbb8 1px, transparent 1px); background-size: 24px 24px;
-            min-width: 0;
+            min-width: 0; width: 100%;
         }
         .chat-header {
             height: 64px; padding: 0 20px; border-bottom: 1px solid var(--border);
@@ -82,44 +85,52 @@
             padding-top: env(safe-area-inset-top); height: calc(64px + env(safe-area-inset-top));
             align-items: flex-end; padding-bottom: 15px; flex-shrink: 0;
         }
-        .header-left { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 17px; }
-        .back-btn { display: none; font-size: 24px; cursor: pointer; }
-
-        .chat-area { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 20px; scroll-behavior: auto; }
+        .header-left { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 17px; cursor: pointer; }
+        .header-left:hover { opacity: 0.7; }
+        .header-sub { font-size: 12px; color: var(--text-light); font-weight: normal; margin-left: 5px; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
         
-        /* 消息行：包含头像和气泡 */
-        .msg-row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; }
+        .action-text-btn { font-size: 13px; cursor: pointer; color: var(--text-light); display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; transition: 0.2s; background: rgba(0,0,0,0.03); }
+        .action-text-btn:hover { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
+        .back-btn { display: none; font-size: 24px; cursor: pointer; padding: 5px; margin-left: -5px; }
+
+        .chat-area { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 16px; scroll-behavior: auto; }
+        
+        /* 消息行 */
+        .msg-row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .msg-row.sent { align-self: flex-end; flex-direction: row-reverse; }
         .msg-row.received { align-self: flex-start; }
         
         .msg-avatar { 
-            width: 36px; height: 36px; border-radius: 50%; background: var(--bg-accent);
+            width: 38px; height: 38px; border-radius: 50%; background: var(--bg-accent);
             display: flex; align-items: center; justify-content: center; 
             color: #fff; font-size: 14px; font-weight: bold; flex-shrink: 0;
-            margin-bottom: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 2px;
         }
 
-        .bubble-wrapper { display: flex; flex-direction: column; gap: 2px; max-width: 100%; }
-        .sender-name { font-size: 10px; color: var(--text-light); margin: 0 4px; opacity: 0.8; }
+        .bubble-wrapper { display: flex; flex-direction: column; gap: 2px; max-width: 100%; min-width: 0; }
+        .sender-name { font-size: 11px; color: var(--text-light); margin: 0 4px; opacity: 0.8; }
         .msg-row.sent .sender-name { text-align: right; }
 
         .bubble {
-            padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.5;
-            box-shadow: 1px 1px 3px rgba(0,0,0,0.05); position: relative; word-wrap: break-word; min-width: 40px;
+            padding: 10px 14px; border-radius: 12px; font-size: 16px; line-height: 1.5;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.05); position: relative; word-wrap: break-word; 
         }
         .msg-row.sent .bubble { background: var(--msg-sent); border-bottom-right-radius: 2px; }
         .msg-row.received .bubble { background: var(--msg-received); border-bottom-left-radius: 2px; }
-        .bubble.recalled { background: rgba(0,0,0,0.03); color: #999; font-style: italic; font-size: 13px; padding: 6px 12px; }
+        .bubble.recalled { background: rgba(0,0,0,0.03); color: #999; font-style: italic; font-size: 13px; padding: 8px 12px; }
 
         .msg-img { max-width: 100%; border-radius: 8px; cursor: zoom-in; display: block; max-height: 300px; }
         .voice-player { display: flex; align-items: center; gap: 8px; width: 180px; height: 34px; cursor: pointer; }
-        .v-btn { font-size: 20px; color: var(--btn-primary); display: flex; }
-        .v-track { flex: 1; height: 3px; background: rgba(0,0,0,0.1); border-radius: 2px; }
+        .v-btn { font-size: 24px; color: var(--btn-primary); display: flex; }
+        .v-track { flex: 1; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; overflow: hidden; }
         .v-prog { height: 100%; background: var(--btn-primary); width: 0%; transition: width 0.1s linear; }
         .v-time { font-size: 12px; color: var(--text-light); min-width: 24px; text-align: right; }
-        .file-content { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.04); padding: 8px; border-radius: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; }
+        .file-content { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; }
 
-        .msg-meta { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 10px; opacity: 0.5; justify-content: flex-end; }
+        .msg-meta { display: flex; align-items: center; gap: 4px; margin-top: 2px; font-size: 10px; opacity: 0.6; justify-content: flex-end; }
         .read-icon { font-size: 14px; line-height: 1; color: #aaa; transition: color 0.3s; }
         .read-icon.read { color: var(--blue-read); }
 
@@ -130,34 +141,36 @@
             padding-bottom: max(15px, env(safe-area-inset-bottom)); flex-shrink: 0;
             position: relative;
         }
-        /* 修复：表情按钮移到这里 */
-        .tool-btn { 
-            width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; 
-            color: var(--text-light); font-size: 22px; cursor: pointer; flex-shrink: 0; 
-            display: flex; align-items: center; justify-content: center; transition: 0.2s; 
-        }
+        .tool-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: var(--text-light); font-size: 22px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
         .tool-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
         .tool-btn.recording { color: var(--danger); animation: pulse 1s infinite; background: rgba(239, 68, 68, 0.1); }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
-        .input-wrapper { flex: 1; background: #fdfdfd; border: 1px solid var(--border); border-radius: 24px; padding: 6px 14px; min-height: 44px; display: flex; align-items: center; }
-        .msg-input { width: 100%; border: none; background: transparent; outline: none; font-size: 16px; font-family: inherit; padding: 5px 0; max-height: 100px; resize: none; }
-        .send-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--btn-primary); color: #fff; border: none; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(92, 75, 60, 0.2); }
+        .input-wrapper { flex: 1; background: #fdfdfd; border: 1px solid var(--border); border-radius: 24px; padding: 6px 14px; min-height: 44px; display: flex; align-items: center; gap: 5px; }
+        .msg-input { flex:1; border: none; background: transparent; outline: none; font-size: 16px; font-family: inherit; resize: none; max-height: 100px; line-height: 22px; padding: 4px 0; }
+        .emoji-btn { color: var(--text-light); font-size: 22px; cursor: pointer; padding: 5px; background: none; border: none; display: flex; align-items: center; transition: 0.2s; }
+        .emoji-btn:hover { color: var(--text-main); transform: scale(1.1); }
+        
+        .send-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--btn-primary); color: #fff; border: none; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(92, 75, 60, 0.2); transition: 0.2s; }
+        .send-btn:active { transform: scale(0.95); }
 
-        .record-confirm { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 24px; padding: 0 20px; height: 44px; border: 1px solid var(--border); }
+        .record-confirm { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 24px; padding: 0 20px; height: 44px; border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
         .record-bar { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff0f0; border-radius: 24px; height: 44px; color: #e74c3c; font-weight: bold; border: 1px solid #ffcccc; user-select: none; }
+        .rc-btn { font-size: 24px; padding: 5px; cursor: pointer; transition: 0.2s; } .rc-btn:hover { transform: scale(1.1); }
 
         /* 表情面板 */
         .emoji-box {
-            position: absolute; bottom: 80px; left: 10px; width: 320px; height: 250px;
+            position: absolute; bottom: 80px; left: 100px; width: 320px; height: 250px;
             background: #fff; border-radius: 12px; box-shadow: var(--shadow-pop); border: 1px solid var(--border);
             z-index: 50; display: flex; flex-direction: column; overflow: hidden; animation: popUp 0.2s ease-out;
         }
         @keyframes popUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .emoji-nav { display: flex; border-bottom: 1px solid #eee; background: #fcfcfc; }
-        .e-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; opacity: 0.6; } .e-tab.active { opacity: 1; border-bottom: 2px solid var(--btn-primary); background: #fff; }
+        .e-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; opacity: 0.6; font-size: 18px; }
+        .e-tab.active { opacity: 1; border-bottom: 2px solid var(--btn-primary); background: #fff; }
         .emoji-grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .e-item { font-size: 26px; cursor: pointer; padding: 5px; text-align: center; color: #000; }
+        .e-item { font-size: 26px; cursor: pointer; padding: 6px; text-align: center; border-radius: 4px; color: #000; }
+        .e-item:active { background: #f0f0f0; }
 
         @media (max-width: 768px) {
             .sidebar { width: 100%; position: absolute; height: 100%; }
@@ -172,14 +185,17 @@
         /* Modals & Utils */
         .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal { background: #fffbf0; width: 340px; padding: 30px; border-radius: 16px; box-shadow: var(--shadow-pop); border: 1px solid var(--border); text-align: center; position: relative; }
-        .m-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; outline: none; background: #fff; font-size: 16px; }
-        .m-btn { width: 100%; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .m-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 16px; background: #fff; }
+        .m-btn { width: 100%; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; } .m-btn:active { transform: scale(0.98); }
         .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--text-light); }
-        .ctx-menu { position: fixed; background: #fff; border-radius: 8px; box-shadow: var(--shadow-pop); padding: 5px 0; z-index: 200; min-width: 120px; border: 1px solid var(--border); }
+        .ctx-menu { position: fixed; background: #fff; border-radius: 8px; box-shadow: var(--shadow-pop); padding: 4px 0; z-index: 200; min-width: 120px; border: 1px solid var(--border); }
         .ctx-item { padding: 12px 16px; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .ctx-item:active { background: #f5f5f5; } .ctx-item.del { color: var(--danger); }
         .img-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:flex; justify-content:center; align-items:center; cursor: zoom-out; }
         .img-full { max-width:100%; max-height:100%; object-fit: contain; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.4; }
+        .btn-danger { background: var(--danger); }
+        .version-info { font-size: 12px; color: #888; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -192,45 +208,59 @@
         <div class="ctx-item del" @click="deleteMsg"><i class="bi bi-trash"></i> 删除(本地)</div>
     </div>
 
-    <!-- 登录 -->
-    <div class="modal-mask" v-if="!currentUser">
+    <!-- Modals -->
+    <div class="modal-mask" v-if="!currentUser || modalType">
         <div class="modal">
-            <h2 style="margin-bottom:20px;">11s Chat</h2>
-            <input type="text" class="m-input" v-model="loginForm.username" placeholder="用户名" @keyup.enter="handleLogin">
-            <input type="password" class="m-input" v-model="loginForm.password" placeholder="密码" @keyup.enter="handleLogin">
-            <button class="m-btn" @click="handleLogin" :disabled="loading">{{ loading ? 'Loading...' : (isRegistering ? '注册' : '登录') }}</button>
-            <div style="margin-top:15px; font-size:13px; color:#888; cursor:pointer;" @click="isRegistering = !isRegistering; errorMsg=''">{{ isRegistering ? '返回登录' : '创建新账号' }}</div>
-            <div style="color:var(--danger); font-size:13px; margin-top:10px;">{{ errorMsg }}</div>
-        </div>
-    </div>
-
-    <!-- 弹窗 -->
-    <div class="modal-mask" v-if="modalType">
-        <div class="modal">
-            <i class="bi bi-x close-modal" @click="closeModal"></i>
-            <h3 style="margin-bottom:15px;">{{ modalTitle }}</h3>
-            <template v-if="modalType === 'addFriend' || modalType === 'addGroup'">
-                <!-- 加好友 -->
+            <template v-if="!currentUser">
+                <h2 style="margin-bottom: 20px;">11s Chat</h2>
+                <input type="text" class="m-input" v-model="loginForm.username" placeholder="用户名" @keyup.enter="handleLogin">
+                <input type="password" class="m-input" v-model="loginForm.password" placeholder="密码" @keyup.enter="handleLogin">
+                <button class="m-btn" @click="handleLogin" :disabled="loading">{{ loading ? 'Loading...' : (isRegistering ? '注册' : '登录') }}</button>
+                <div style="margin-top:15px; font-size:13px; color:#888; cursor:pointer;" @click="isRegistering = !isRegistering; errorMsg=''">{{ isRegistering ? '返回登录' : '创建新账号' }}</div>
+                <div style="color:var(--danger); font-size:13px; margin-top:10px;">{{ errorMsg }}</div>
+            </template>
+            <template v-else>
+                <i class="bi bi-x close-modal" @click="closeModal"></i>
+                <h3 style="margin-bottom:15px;">{{ modalTitle }}</h3>
+                
                 <div v-if="modalType === 'addFriend'">
                     <input type="text" class="m-input" v-model="modalInput" placeholder="输入用户名">
                     <button class="m-btn" @click="addFriend" :disabled="loading">添加</button>
                 </div>
-                <!-- 建群 -->
-                <div v-else>
+                <div v-if="modalType === 'addGroup'">
                     <input type="text" class="m-input" v-model="modalInput" placeholder="群名称">
                     <button class="m-btn" @click="createGroup" :disabled="loading">创建</button>
                 </div>
+                <div v-if="modalType === 'inviteMember'">
+                    <input type="text" class="m-input" v-model="modalInput" placeholder="输入好友用户名">
+                    <button class="m-btn" @click="inviteMember" :disabled="loading">拉入群聊</button>
+                </div>
+                <div v-if="modalType === 'editProfile'">
+                    <input type="text" class="m-input" v-model="profileForm.username" placeholder="新用户名">
+                    <input type="password" class="m-input" v-model="profileForm.password" placeholder="新密码 (留空不改)">
+                    <button class="m-btn" @click="updateProfile" :disabled="loading">保存</button>
+                </div>
+                
+                <!-- 修改备注 -->
+                <div v-if="modalType === 'editAlias'">
+                    <input type="text" class="m-input" v-model="modalInput" placeholder="输入新的备注名">
+                    <button class="m-btn" @click="updateAlias" :disabled="loading">保存备注</button>
+                </div>
+
+                <div v-if="modalType === 'confirmAction'">
+                    <p style="margin-bottom:20px; font-size:14px; color:#666;">{{ modalMsg }}</p>
+                    <button class="m-btn btn-danger" @click="confirmActionCallback">确认执行</button>
+                </div>
+                
+                <div v-if="modalType === 'about'">
+                    <i class="bi bi-feather" style="font-size:32px; color:var(--text-main);"></i>
+                    <p style="margin-top:10px; font-weight:bold;">11s Chat v4.5.0</p>
+                    <p class="version-info">Secure & Parchment UI</p>
+                    <p class="version-info">Designed for Tom</p>
+                </div>
+
+                <div style="color:var(--danger); font-size:13px; margin-top:10px;" v-if="modalError">{{ modalError }}</div>
             </template>
-            <template v-if="modalType === 'inviteMember'">
-                <input type="text" class="m-input" v-model="modalInput" placeholder="输入好友用户名">
-                <button class="m-btn" @click="inviteMember" :disabled="loading">拉入群聊</button>
-            </template>
-            <template v-if="modalType === 'editProfile'">
-                <input type="text" class="m-input" v-model="profileForm.username" placeholder="新用户名">
-                <input type="password" class="m-input" v-model="profileForm.password" placeholder="新密码 (留空不改)">
-                <button class="m-btn" @click="updateProfile" :disabled="loading">保存</button>
-            </template>
-            <div style="color:var(--danger); font-size:13px; margin-top:10px;" v-if="modalError">{{ modalError }}</div>
         </div>
     </div>
 
@@ -238,27 +268,30 @@
         <div class="sidebar" :class="{ hidden: currentChat && isMobile }">
             <div class="brand"><span><i class="bi bi-feather"></i> 11s Chat</span><div class="conn-dot" :class="{ online: isConnected }"></div></div>
             
-            <!-- Tabs -->
             <div class="sidebar-tabs">
                 <div class="sb-tab" :class="{active: activeTab==='friend'}" @click="activeTab='friend'">好友</div>
                 <div class="sb-tab" :class="{active: activeTab==='group'}" @click="activeTab='group'">群组</div>
             </div>
 
-            <!-- 好友列表 -->
-            <div class="chat-list" v-if="activeTab==='friend'">
+            <div class="friend-list" v-if="activeTab==='friend'">
                 <div class="list-header"><span>我的好友</span><i class="bi bi-person-plus icon-btn" @click="openModal('addFriend')"></i></div>
-                <div v-for="f in friends" :key="f.id" class="friend-item" :class="{active: currentChat?.id===f.id && currentChat?.type==='friend'}" @click="openChat(f, 'friend')">
-                    <div class="avatar">{{ f.username.charAt(0) }}</div>
+                <div v-for="f in friends" :key="f.id" class="friend-item" :class="{active: currentChat?.id===f.id && currentChat?.type==='friend'}" @click="openChat(f, 'friend')" @contextmenu.prevent="openFriendCtx(f, $event)">
+                    <div class="avatar">{{ (f.alias||f.username).charAt(0) }}</div>
                     <div class="friend-info">
-                        <div class="friend-top"><span class="friend-name">{{ f.username }}</span><span class="friend-time" v-if="f.lastMsg">{{ formatTime(f.lastMsg.created_at, true) }}</span></div>
+                        <div class="friend-top">
+                            <div class="friend-name-row">
+                                <span class="friend-name">{{ f.alias||f.username }}</span>
+                                <span class="friend-realname" v-if="f.alias">({{f.username}})</span>
+                            </div>
+                            <span class="friend-time" v-if="f.lastMsg">{{ formatTime(f.lastMsg.created_at, true) }}</span>
+                        </div>
                         <div class="friend-top"><span class="friend-msg">{{ getPreview(f.lastMsg) }}</span><div class="unread-dot" v-if="f.unread > 0">{{ f.unread }}</div></div>
                     </div>
                 </div>
                 <div v-if="friends.length===0" style="text-align:center; padding:30px; font-size:12px; color:#999;">暂无好友</div>
             </div>
 
-            <!-- 群组列表 -->
-            <div class="chat-list" v-else>
+            <div class="friend-list" v-else>
                 <div class="list-header"><span>我的群组</span><i class="bi bi-plus-square icon-btn" @click="openModal('addGroup')"></i></div>
                 <div v-for="g in groups" :key="g.id" class="friend-item" :class="{active: currentChat?.id===g.id && currentChat?.type==='group'}" @click="openChat(g, 'group')">
                     <div class="avatar" style="background:var(--text-main)">{{ g.name.charAt(0) }}</div>
@@ -271,29 +304,39 @@
 
             <div class="user-footer">
                 <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="width:32px; height:32px; font-size:14px; background:var(--text-main);">{{ currentUser.username.charAt(0) }}</div><span class="user-name">{{ currentUser.username }}</span></div>
-                <div style="display:flex; gap:10px; font-size:18px; color:var(--text-light);"><i class="bi bi-gear-fill icon-btn" @click="openModal('editProfile')"></i><i class="bi bi-box-arrow-right icon-btn" @click="logout"></i></div>
+                <div style="display:flex; gap:5px; font-size:18px; color:var(--text-light);">
+                    <i class="bi bi-info-circle icon-btn" @click="openModal('about')" title="关于"></i>
+                    <i class="bi bi-gear-fill icon-btn" @click="openModal('editProfile')" title="设置"></i>
+                    <i class="bi bi-box-arrow-right icon-btn" @click="logout" title="退出"></i>
+                </div>
             </div>
         </div>
 
         <div class="main-chat" :class="{ active: currentChat }">
             <template v-if="currentChat">
                 <div class="chat-header">
-                    <div class="header-left">
-                        <i class="bi bi-chevron-left back-btn" @click="closeChat"></i>
-                        <span>{{ currentChat.type === 'friend' ? currentChat.username : currentChat.name }}</span>
+                    <div class="header-left" @click="currentChat.type === 'friend' ? openModal('editAlias') : null" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
+                        <i class="bi bi-chevron-left back-btn" @click.stop="closeChat"></i>
+                        <span style="font-size:17px;font-weight:bold;">{{ currentChat.type === 'friend' ? (currentChat.alias || currentChat.username) : currentChat.name }}</span>
+                        <span class="header-sub" v-if="currentChat.type === 'friend' && currentChat.alias">({{ currentChat.username }})</span>
+                        <i class="bi bi-pencil-square" v-if="currentChat.type === 'friend'" style="font-size:12px;opacity:0.5"></i>
                     </div>
-                    <i v-if="currentChat.type === 'group'" class="bi bi-person-plus icon-btn" @click="openModal('inviteMember')" title="拉人进群"></i>
+                    <div class="header-right" style="display:flex;gap:10px;">
+                        <div v-if="currentChat.type === 'friend'" class="action-text-btn" @click="promptAction('deleteFriend')"><i class="bi bi-person-x"></i> 删除</div>
+                        <div v-if="currentChat.type === 'group'" class="action-text-btn" @click="openModal('inviteMember')"><i class="bi bi-person-plus"></i> 邀请</div>
+                        <div v-if="currentChat.type === 'group' && currentChat.owner_id === currentUser.id" class="action-text-btn" @click="promptAction('delete')"><i class="bi bi-trash"></i> 解散</div>
+                        <div v-if="currentChat.type === 'group' && currentChat.owner_id !== currentUser.id" class="action-text-btn" @click="promptAction('leave')"><i class="bi bi-box-arrow-right"></i> 退出</div>
+                    </div>
                 </div>
                 
                 <div class="chat-area" id="msg-box" @click="showEmoji=false">
+                    <TransitionGroup name="msg-anim">
                     <div v-for="msg in messages" :key="msg.id" class="msg-row" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
-                        <!-- 头像 -->
                         <div v-if="msg.sender_id !== currentUser.id" class="msg-avatar">
                             {{ getSenderInitial(msg.sender_id) }}
                         </div>
                         
                         <div class="bubble-wrapper">
-                            <!-- 群聊显示发送者名字 -->
                             <div v-if="currentChat.type === 'group' && msg.sender_id !== currentUser.id" class="sender-name">
                                 {{ getSenderName(msg.sender_id) }}
                             </div>
@@ -302,7 +345,7 @@
                                  @contextmenu.prevent="openCtxMenu($event, msg)"
                                  @touchstart="handleTouchStart($event, msg)" @touchend="handleTouchEnd" @touchmove="handleTouchMove">
                                 
-                                <template v-if="msg.is_recalled"><i class="bi bi-arrow-counterclockwise"></i> 撤回</template>
+                                <template v-if="msg.is_recalled"><i class="bi bi-arrow-counterclockwise"></i> 消息已撤回</template>
                                 <template v-else>
                                     <div v-if="msg.msg_type === 'text'">{{ msg.content }}</div>
                                     <img v-else-if="msg.msg_type === 'image'" :src="msg.file_url" class="msg-img" @click.stop="previewUrl = msg.file_url">
@@ -320,6 +363,7 @@
                             </div>
                         </div>
                     </div>
+                    </TransitionGroup>
                 </div>
 
                 <div class="chat-footer">
@@ -345,6 +389,7 @@
                         <div class="input-wrapper">
                             <input type="text" class="msg-input" v-model="newMessage" placeholder="写信..." @keyup.enter="sendMessage" @focus="markRead">
                         </div>
+                        
                         <button class="send-btn" @click="sendMessage" v-if="newMessage.trim()"><i class="bi bi-arrow-up"></i></button>
                     </template>
                     <div class="emoji-box" v-if="showEmoji" @click.stop>
@@ -376,22 +421,23 @@
             const loading = ref(false);
             const errorMessage = ref('');
             
-            const activeTab = ref('friend'); // friend | group
+            const activeTab = ref('friend'); 
             const friends = ref([]);
             const groups = ref([]);
-            const allUsersCache = ref({}); // id -> username mapping
+            const allUsersCache = ref({}); 
             
-            const currentChat = ref(null); // { id, username/name, type: 'friend'|'group' }
+            const currentChat = ref(null); 
             const messages = ref([]);
             const newMessage = ref('');
             const isConnected = ref(false);
             const isMobile = ref(window.innerWidth <= 768);
             
-            const modalType = ref(null); const modalError = ref(''); const modalTitle = ref(''); const modalInput = ref(''); const profileForm = ref({ username: '', password: '' });
+            const modalType = ref(null); const modalError = ref(''); const modalTitle = ref(''); const modalInput = ref(''); const profileForm = ref({ username: '', password: '' }); const modalMsg = ref('');
             const previewUrl = ref(null); const showEmoji = ref(false); const emojiTab = ref(0); const ctxMenu = ref({ show: false, x: 0, y: 0, msg: null });
             
             const isRecording = ref(false); const voiceBlob = ref(null); const playingId = ref(null); const playProgress = ref(0);
             let mediaRecorder = null; let audioChunks = []; let currentAudio = null; let progInterval = null; let pollingInterval = null; let touchTimer = null;
+            let pendingAction = ref(null); 
 
             const currentEmojis = computed(() => EMOJIS[emojiTab.value]);
             const canRecall = computed(() => ctxMenu.value.msg && (new Date() - new Date(ctxMenu.value.msg.created_at)) / 1000 / 60 < 2);
@@ -399,7 +445,7 @@
             onMounted(() => {
                 const saved = localStorage.getItem('11s_user');
                 if (saved) { try { currentUser.value = JSON.parse(saved); initSystem(); } catch(e){} }
-                window.addEventListener('resize', ()=>isMobile.value=window.innerWidth<=768);
+                window.addEventListener('resize', () => isMobile.value = window.innerWidth <= 768);
             });
             onUnmounted(() => { if(pollingInterval) clearInterval(pollingInterval); stopAudio(); });
 
@@ -429,25 +475,23 @@
             // Data Loading
             const loadFriends = async () => {
                 if(!currentUser.value) return;
-                const { data: f1 } = await sb.from('chat_friends').select('friend_id').eq('user_id', currentUser.value.id);
-                const { data: f2 } = await sb.from('chat_friends').select('user_id').eq('friend_id', currentUser.value.id);
+                const { data: f1 } = await sb.from('chat_friends').select('friend_id, alias').eq('user_id', currentUser.value.id);
+                const { data: f2 } = await sb.from('chat_friends').select('user_id, alias').eq('friend_id', currentUser.value.id);
+                const aliasMap = {}; f1?.forEach(r => aliasMap[r.friend_id] = r.alias);
                 const ids = [...new Set([...(f1||[]).map(f => f.friend_id), ...(f2||[]).map(f => f.user_id)])];
                 if(ids.length > 0) {
                     const { data: users } = await sb.from('chat_users').select('*').in('id', ids);
-                    // Cache names
                     users.forEach(u => allUsersCache.value[u.id] = u.username);
-                    
                     const list = await Promise.all(users.map(async u => {
                         const { data: msgs } = await sb.from('chat_messages').select('*').or(`sender_id.eq.${u.id},receiver_id.eq.${u.id}`).or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`).order('created_at', { ascending: false }).limit(1);
                         const { count } = await sb.from('chat_messages').select('*', { count: 'exact', head: true }).eq('sender_id', u.id).eq('receiver_id', currentUser.value.id).eq('is_read', false);
-                        return { ...u, unread: count || 0, lastMsg: msgs?.[0] };
+                        return { ...u, alias: aliasMap[u.id], unread: count || 0, lastMsg: msgs?.[0] };
                     }));
                     friends.value = list.sort((a,b) => new Date(b.lastMsg?.created_at||0) - new Date(a.lastMsg?.created_at||0));
                 }
             };
 
             const loadGroups = async () => {
-                // Get groups I am a member of
                 const { data: members } = await sb.from('chat_group_members').select('group_id').eq('user_id', currentUser.value.id);
                 const groupIds = members?.map(m => m.group_id) || [];
                 if(groupIds.length > 0) {
@@ -469,17 +513,10 @@
             const loadMessages = async () => {
                 if(!currentChat.value) return;
                 let q = sb.from('chat_messages').select('*').order('created_at', { ascending: true });
-                
-                if (currentChat.value.type === 'group') {
-                    q = q.eq('group_id', currentChat.value.id);
-                } else {
-                    // Private
-                    q = q.or(`and(sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentChat.value.id}),and(sender_id.eq.${currentChat.value.id},receiver_id.eq.${currentUser.value.id})`);
-                }
+                if (currentChat.value.type === 'group') q = q.eq('group_id', currentChat.value.id);
+                else q = q.or(`and(sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentChat.value.id}),and(sender_id.eq.${currentChat.value.id},receiver_id.eq.${currentUser.value.id})`);
                 const { data } = await q;
                 messages.value = data || [];
-                
-                // Cache senders for groups
                 if(currentChat.value.type === 'group' && data) {
                     const unknownIds = [...new Set(data.map(m => m.sender_id).filter(id => !allUsersCache.value[id]))];
                     if(unknownIds.length > 0) {
@@ -493,21 +530,15 @@
             const sendMessage = async () => {
                 if(!newMessage.value.trim() && !newMessage.value.startsWith('img::')) return;
                 const content = newMessage.value; newMessage.value = ''; showEmoji.value = false;
-                
-                const payload = {
-                    sender_id: currentUser.value.id,
-                    content, msg_type: 'text',
-                };
-                if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id;
-                else payload.receiver_id = currentChat.value.id;
-
+                const payload = { sender_id: currentUser.value.id, content, msg_type: 'text' };
+                if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id; else payload.receiver_id = currentChat.value.id;
                 const tmp = { ...payload, id: Date.now(), created_at: new Date().toISOString(), is_read: false };
                 messages.value.push(tmp); scrollToBottom();
                 await sb.from('chat_messages').insert(payload);
             };
 
-            // Modals
-            const openModal = (t) => { modalType.value = t; modalError.value = ''; modalInput.value=''; modalTitle.value = t==='addFriend'?'添加好友':(t==='addGroup'?'创建群组':(t==='inviteMember'?'拉人进群':'修改资料')); };
+            // Modals & Group Logic
+            const openModal = (t) => { modalType.value = t; modalError.value = ''; modalInput.value=''; if(t==='addFriend') modalTitle.value='添加好友'; else if(t==='addGroup') modalTitle.value='创建群组'; else if(t==='inviteMember') modalTitle.value='拉人进群'; else if(t==='editProfile') modalTitle.value='修改资料'; else if(t==='editAlias') { modalTitle.value='修改备注'; modalInput.value=currentChat.value.alias || ''; } else if(t==='about') modalTitle.value='关于'; };
             const closeModal = () => modalType.value = null;
 
             const addFriend = async () => {
@@ -528,7 +559,6 @@
                     if(!modalInput.value.trim()) throw new Error("请输入群名");
                     const { data: g, error } = await sb.from('chat_groups').insert({ name: modalInput.value.trim(), owner_id: currentUser.value.id }).select().single();
                     if(error) throw error;
-                    // Add self as member
                     await sb.from('chat_group_members').insert({ group_id: g.id, user_id: currentUser.value.id });
                     alert("创建成功"); closeModal(); loadGroups();
                 } catch(e) { modalError.value = e.message; }
@@ -546,7 +576,55 @@
                 loading.value = false;
             };
 
-            const updateProfile = async () => { /* same as before */ };
+            const updateAlias = async () => {
+                loading.value = true;
+                try {
+                    const newAlias = modalInput.value.trim();
+                    const { error } = await sb.from('chat_friends').upsert({ 
+                        user_id: currentUser.value.id, friend_id: currentChat.value.id, alias: newAlias
+                    }, { onConflict: 'user_id, friend_id' });
+                    if (error) throw error;
+                    currentChat.value.alias = newAlias; closeModal(); loadFriends();
+                } catch(e) { modalError.value = "设置失败: " + e.message; }
+                loading.value = false;
+            };
+            
+            // Delete / Leave (Prompt Logic)
+            const promptAction = (action) => {
+                pendingAction.value = action; modalTitle.value = '危险操作';
+                if (action === 'delete') modalMsg.value = '确定要解散群组吗？数据将永久删除。';
+                else if (action === 'leave') modalMsg.value = '确定要退出群组吗？';
+                else if (action === 'deleteFriend') modalMsg.value = `确定要删除好友 ${currentChat.value.username} 吗？`;
+                modalType.value = 'confirmAction';
+            };
+
+            const confirmActionCallback = async () => {
+                loading.value = true;
+                try {
+                    const action = pendingAction.value;
+                    if (action === 'delete') {
+                        // 前端先移除
+                        groups.value = groups.value.filter(g => g.id !== currentChat.value.id);
+                        await sb.from('chat_groups').delete().eq('id', currentChat.value.id);
+                    } else if (action === 'leave') {
+                        groups.value = groups.value.filter(g => g.id !== currentChat.value.id);
+                        await sb.from('chat_group_members').delete().eq('group_id', currentChat.value.id).eq('user_id', currentUser.value.id);
+                    } else if (action === 'deleteFriend') {
+                        friends.value = friends.value.filter(f => f.id !== currentChat.value.id);
+                        await sb.from('chat_friends').delete().or(`and(user_id.eq.${currentUser.value.id},friend_id.eq.${currentChat.value.id}),and(user_id.eq.${currentChat.value.id},friend_id.eq.${currentUser.value.id})`);
+                        await sb.from('chat_messages').delete().or(`and(sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentChat.value.id}),and(sender_id.eq.${currentChat.value.id},receiver_id.eq.${currentUser.value.id})`);
+                    }
+                    closeModal(); closeChat();
+                    // 异步刷新以确保同步
+                    if(action.includes('Friend')) setTimeout(loadFriends, 500); else setTimeout(loadGroups, 500);
+                } catch(e) { 
+                    modalError.value = "操作失败: " + e.message;
+                    alert("操作失败 (可能权限不足): " + e.message);
+                }
+                loading.value = false;
+            };
+
+            const updateProfile = async () => { /* ... */ };
 
             // Realtime & Utils
             const setupRealtime = () => {
@@ -563,7 +641,7 @@
                             if(!messages.value.some(m => m.id === msg.id)) { messages.value.push(msg); scrollToBottom(); }
                             if(msg.sender_id !== currentUser.value.id) markRead();
                         }
-                        loadFriends(); // Refresh lists
+                        loadFriends();
                     } else if(p.eventType === 'UPDATE') {
                         const i = messages.value.findIndex(m => m.id === msg.id);
                         if(i !== -1) messages.value[i] = msg;
@@ -571,16 +649,13 @@
                 }).subscribe(s => isConnected.value = s === 'SUBSCRIBED');
             };
 
-            // Voice & File (Similar logic, adding group_id support)
             const uploadVoice = async () => {
                 if(!voiceBlob.value) return;
                 const duration = Math.floor(voiceBlob.value.size / 5000); 
                 const name = `voice_${Date.now()}.webm`;
                 const payload = { sender_id: currentUser.value.id, msg_type: 'voice', file_url: '', file_name: duration+'s' };
                 if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id; else payload.receiver_id = currentChat.value.id;
-                
                 messages.value.push({ ...payload, id: Date.now(), created_at: new Date().toISOString() }); scrollToBottom(); voiceBlob.value = null;
-                
                 try {
                     await sb.storage.from('chat-uploads').upload(name, voiceBlob.value);
                     const { data } = sb.storage.from('chat-uploads').getPublicUrl(name);
@@ -589,16 +664,13 @@
                 } catch(e) {}
             };
             const handleFile = async (e) => {
-                const file = e.target.files[0]; if(!file) return;
-                const type = file.type.startsWith('image') ? 'image' : 'file';
-                const name = `${Date.now()}_${file.name}`;
+                const file = e.target.files[0]; if(!file) return; const type = file.type.startsWith('image') ? 'image' : 'file'; const name = `${Date.now()}_${file.name}`;
                 try {
-                    await sb.storage.from('chat-uploads').upload(name, file);
-                    const { data } = sb.storage.from('chat-uploads').getPublicUrl(name);
+                    await sb.storage.from('chat-uploads').upload(name, file); const { data } = sb.storage.from('chat-uploads').getPublicUrl(name);
                     const payload = { sender_id: currentUser.value.id, msg_type: type, file_url: data.publicUrl, file_name: file.name, content: type };
                     if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id; else payload.receiver_id = currentChat.value.id;
                     await sb.from('chat_messages').insert(payload);
-                } catch(e) { alert("上传失败"); }
+                } catch(e) { alert("Fail"); }
             };
 
             const markRead = async () => { 
@@ -611,7 +683,10 @@
             const startRecord = async () => { try { const s = await navigator.mediaDevices.getUserMedia({audio:true}); mediaRecorder = new MediaRecorder(s); audioChunks=[]; mediaRecorder.ondataavailable=e=>audioChunks.push(e.data); mediaRecorder.onstop=()=>voiceBlob.value=new Blob(audioChunks,{type:'audio/webm'}); mediaRecorder.start(); isRecording.value=true; } catch(e){alert("No Mic");} };
             const stopRecord = () => { if(mediaRecorder?.state!=='inactive'){mediaRecorder.stop(); isRecording.value=false;} };
             const playDraftVoice = () => new Audio(URL.createObjectURL(voiceBlob.value)).play();
-            const toggleVoice = (msg) => { if(playingId.value===msg.id){stopAudio();return;} stopAudio(); const a=new Audio(msg.file_url); currentAudio=a; playingId.value=msg.id; a.play(); progInterval=setInterval(()=>{if(a.duration)playProgress.value=(a.currentTime/a.duration)*100},100); a.onended=stopAudio; };
+            const toggleVoice = (msg) => {
+                if(playingId.value===msg.id){stopAudio();return;} stopAudio(); const a=new Audio(msg.file_url); currentAudio=a; playingId.value=msg.id; a.play(); 
+                progInterval=setInterval(()=>{if(a.duration)playProgress.value=(a.currentTime/a.duration)*100},100); a.onended=stopAudio; 
+            };
             const stopAudio = () => { if(currentAudio){currentAudio.pause();currentAudio=null;} clearInterval(progInterval); playingId.value=null; playProgress.value=0; };
             const triggerFile = () => document.getElementById('fileInput').click();
             const addEmoji = (e) => newMessage.value += e;
@@ -625,12 +700,12 @@
             const deleteMsg = () => { messages.value=messages.value.filter(m=>m.id!==ctxMenu.value.msg.id); ctxMenu.value.show=false; };
             const scrollToBottom = () => nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight+100; });
             const formatTime = (iso, short) => { const d = new Date(iso); if(short) return `${d.getMonth()+1}/${d.getDate()}`; return `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`; };
-            const getPreview = (m) => !m ? '' : (m.is_recalled ? '撤回了一条消息' : (m.msg_type==='text'?m.content:`[${m.msg_type}]`));
+            const getPreview = (m) => !m ? '' : (m.is_recalled ? '撤回' : (m.msg_type==='text'?m.content:`[${m.msg_type}]`));
 
             return {
                 currentUser, loginForm, isRegistering, loading, errorMessage, friends, groups, currentChat, messages, newMessage, isConnected, activeTab,
-                modalType, modalError, modalTitle, modalInput, profileForm, previewUrl, showEmoji, EMOJIS, ctxMenu, canRecall, isRecording, voiceBlob, playingId, playProgress,
-                handleLogin, logout, openModal, closeModal, addFriend, createGroup, inviteMember, updateProfile, openChat, closeChat,
+                modalType, modalError, modalTitle, modalInput, modalMsg, profileForm, previewUrl, showEmoji, EMOJIS, ctxMenu, canRecall, isRecording, voiceBlob, playingId, playProgress,
+                handleLogin, logout, openModal, closeModal, addFriend, createGroup, inviteMember, updateProfile, updateAlias, openChat, closeChat, promptAction, confirmActionCallback,
                 sendMessage, triggerFile, handleFile, startRecord, stopRecord, playDraftVoice, uploadVoice, toggleVoice,
                 openCtxMenu, handleTouchStart, handleTouchEnd, handleTouchMove, recallMsg, deleteMsg, closePopups: handleClickOutside, previewImg: (u)=>previewUrl.value=u, addEmoji,
                 formatTime, getPreview, markRead, onImgLoad: scrollToBottom, getSenderInitial, getSenderName
