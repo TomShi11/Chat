@@ -18,24 +18,25 @@
             --btn-primary: #5c4b3c; --btn-hover: #3e3228;
             --blue-read: #3498db; --danger: #ef4444; --success: #2ecc71;
             --radius: 12px;
-            --shadow-pop: 0 8px 30px rgba(44, 36, 27, 0.15);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* 布局终极修复：使用 absolute 撑满屏幕，无视滚动条 */
-        html, body { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; background-color: var(--bg-paper);
+        /* 核心布局修复：强制占满，无视内容 */
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden; /* 禁止页面级滚动 */
+            background-color: var(--bg-paper);
             font-family: "Georgia", "Songti SC", "Microsoft YaHei", serif;
         }
 
-        #app { 
+        #app {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            display: flex; background: #fff; width: 100%; height: 100%;
+            display: flex; background: #fff;
         }
 
-        /* --- Sidebar --- */
+        /* --- 侧边栏 --- */
         .sidebar {
             width: 300px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border);
             display: flex; flex-direction: column; padding: 20px; z-index: 20;
@@ -73,17 +74,19 @@
 
         /* --- Main Chat --- */
         .main-chat {
-            flex: 1; display: flex; flex-direction: column; position: relative; z-index: 10;
+            flex: 1; /* 自动占满 */
+            display: flex; flex-direction: column; position: relative; z-index: 10;
             background-color: var(--bg-paper);
             background-image: radial-gradient(#d4cbb8 1px, transparent 1px); background-size: 24px 24px;
-            min-width: 0; width: 100%;
+            width: 100%; min-width: 0; height: 100%;
         }
+        
         .chat-header {
             height: 64px; padding: 0 20px; border-bottom: 1px solid var(--border);
             display: flex; align-items: center; justify-content: space-between;
             background: rgba(253, 246, 227, 0.95); backdrop-filter: blur(12px);
-            padding-top: env(safe-area-inset-top); height: calc(64px + env(safe-area-inset-top));
-            align-items: flex-end; padding-bottom: 15px; flex-shrink: 0;
+            padding-top: env(safe-area-inset-top); 
+            flex-shrink: 0; /* 禁止被压缩 */
         }
         .header-left { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 17px; cursor: pointer; }
         .header-left:hover { opacity: 0.7; }
@@ -94,9 +97,15 @@
         .action-text-btn:hover { background: rgba(231, 76, 60, 0.1); color: var(--danger); }
         .back-btn { display: none; font-size: 24px; cursor: pointer; padding: 5px; margin-left: -5px; }
 
-        .chat-area { flex: 1; overflow-y: auto; padding: 20px 5%; display: flex; flex-direction: column; gap: 16px; scroll-behavior: auto; }
+        /* 聊天滚动区 */
+        .chat-area { 
+            flex: 1; /* 关键：撑满中间 */
+            min-height: 0; /* 允许收缩 */
+            overflow-y: auto; padding: 20px 5%; 
+            display: flex; flex-direction: column; gap: 16px; 
+            -webkit-overflow-scrolling: touch;
+        }
         
-        /* 消息行 */
         .msg-row { display: flex; gap: 10px; max-width: 85%; align-items: flex-end; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -134,11 +143,13 @@
         .read-icon { font-size: 14px; line-height: 1; color: #aaa; transition: color 0.3s; }
         .read-icon.read { color: var(--blue-read); }
 
-        /* Footer */
+        /* 底部工具栏 */
         .chat-footer {
             padding: 10px 15px; background: #fff; border-top: 1px solid var(--border);
             display: flex; align-items: flex-end; gap: 8px; min-height: 70px;
-            padding-bottom: max(15px, env(safe-area-inset-bottom)); flex-shrink: 0;
+            /* 适配底部安全区 */
+            padding-bottom: max(15px, env(safe-area-inset-bottom)); 
+            flex-shrink: 0; 
             position: relative;
         }
         .tool-btn { width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent; color: var(--text-light); font-size: 22px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
@@ -148,47 +159,35 @@
         
         .input-wrapper { flex: 1; background: #fdfdfd; border: 1px solid var(--border); border-radius: 24px; padding: 6px 14px; min-height: 44px; display: flex; align-items: center; gap: 5px; }
         .msg-input { flex:1; border: none; background: transparent; outline: none; font-size: 16px; font-family: inherit; resize: none; max-height: 100px; line-height: 22px; padding: 4px 0; }
-        .emoji-btn { color: var(--text-light); font-size: 22px; cursor: pointer; padding: 5px; background: none; border: none; display: flex; align-items: center; transition: 0.2s; }
-        .emoji-btn:hover { color: var(--text-main); transform: scale(1.1); }
         
         .send-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--btn-primary); color: #fff; border: none; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(92, 75, 60, 0.2); transition: 0.2s; }
         .send-btn:active { transform: scale(0.95); }
 
-        .record-confirm { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 24px; padding: 0 20px; height: 44px; border: 1px solid var(--border); box-shadow: var(--shadow-pop); }
+        .record-confirm { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 24px; padding: 0 20px; height: 44px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .record-bar { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff0f0; border-radius: 24px; height: 44px; color: #e74c3c; font-weight: bold; border: 1px solid #ffcccc; user-select: none; }
         .rc-btn { font-size: 24px; padding: 5px; cursor: pointer; transition: 0.2s; } .rc-btn:hover { transform: scale(1.1); }
 
-        /* 表情面板 */
-        .emoji-box {
-            position: absolute; bottom: 80px; left: 100px; width: 320px; height: 250px;
-            background: #fff; border-radius: 12px; box-shadow: var(--shadow-pop); border: 1px solid var(--border);
-            z-index: 50; display: flex; flex-direction: column; overflow: hidden; animation: popUp 0.2s ease-out;
-        }
-        @keyframes popUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .emoji-nav { display: flex; border-bottom: 1px solid #eee; background: #fcfcfc; }
-        .e-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; opacity: 0.6; font-size: 18px; }
-        .e-tab.active { opacity: 1; border-bottom: 2px solid var(--btn-primary); background: #fff; }
-        .emoji-grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .e-item { font-size: 26px; cursor: pointer; padding: 6px; text-align: center; border-radius: 4px; color: #000; }
-        .e-item:active { background: #f0f0f0; }
-
+        /* 移动端适配 */
         @media (max-width: 768px) {
-            .sidebar { width: 100%; position: absolute; height: 100%; }
-            .main-chat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 20; }
+            .sidebar { width: 100%; position: absolute; height: 100%; z-index: 20; }
+            .main-chat { 
+                position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+                transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+                z-index: 30; 
+            }
             .main-chat.active { transform: translateX(0); }
             .back-btn { display: block; }
-            .chat-footer { padding: 10px; gap: 5px; }
-            .emoji-box { width: 96%; left: 2%; bottom: 80px; }
+            .chat-footer { padding: 10px; gap: 5px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
             .msg-row { max-width: 90%; }
         }
 
         /* Modals & Utils */
         .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
-        .modal { background: #fffbf0; width: 340px; padding: 30px; border-radius: 16px; box-shadow: var(--shadow-pop); border: 1px solid var(--border); text-align: center; position: relative; }
+        .modal { background: #fffbf0; width: 340px; padding: 30px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border); text-align: center; position: relative; }
         .m-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 16px; background: #fff; }
         .m-btn { width: 100%; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s; } .m-btn:active { transform: scale(0.98); }
         .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--text-light); }
-        .ctx-menu { position: fixed; background: #fff; border-radius: 8px; box-shadow: var(--shadow-pop); padding: 4px 0; z-index: 200; min-width: 120px; border: 1px solid var(--border); }
+        .ctx-menu { position: fixed; background: #fff; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); padding: 4px 0; z-index: 200; min-width: 120px; border: 1px solid var(--border); }
         .ctx-item { padding: 12px 16px; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
         .ctx-item:active { background: #f5f5f5; } .ctx-item.del { color: var(--danger); }
         .img-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:2000; display:flex; justify-content:center; align-items:center; cursor: zoom-out; }
@@ -241,7 +240,6 @@
                     <button class="m-btn" @click="updateProfile" :disabled="loading">保存</button>
                 </div>
                 
-                <!-- 修改备注 -->
                 <div v-if="modalType === 'editAlias'">
                     <input type="text" class="m-input" v-model="modalInput" placeholder="输入新的备注名">
                     <button class="m-btn" @click="updateAlias" :disabled="loading">保存备注</button>
@@ -254,7 +252,7 @@
                 
                 <div v-if="modalType === 'about'">
                     <i class="bi bi-feather" style="font-size:32px; color:var(--text-main);"></i>
-                    <p style="margin-top:10px; font-weight:bold;">11s Chat v4.5.0</p>
+                    <p style="margin-top:10px; font-weight:bold;">11s Chat v5.0.0</p>
                     <p class="version-info">Secure & Parchment UI</p>
                     <p class="version-info">Designed for Tom</p>
                 </div>
@@ -318,7 +316,7 @@
                     <div class="header-left" @click="currentChat.type === 'friend' ? openModal('editAlias') : null" style="display:flex;align-items:center;gap:10px;cursor:pointer;">
                         <i class="bi bi-chevron-left back-btn" @click.stop="closeChat"></i>
                         <span style="font-size:17px;font-weight:bold;">{{ currentChat.type === 'friend' ? (currentChat.alias || currentChat.username) : currentChat.name }}</span>
-                        <span class="header-sub" v-if="currentChat.type === 'friend' && currentChat.alias">({{ currentChat.username }})</span>
+                        <span class="header-sub" v-if="currentChat.type === 'friend' && currentChat.alias" style="font-size:12px;color:var(--text-light);font-weight:normal;">({{ currentChat.username }})</span>
                         <i class="bi bi-pencil-square" v-if="currentChat.type === 'friend'" style="font-size:12px;opacity:0.5"></i>
                     </div>
                     <div class="header-right" style="display:flex;gap:10px;">
@@ -329,8 +327,7 @@
                     </div>
                 </div>
                 
-                <div class="chat-area" id="msg-box" @click="showEmoji=false">
-                    <TransitionGroup name="msg-anim">
+                <div class="chat-area" id="msg-box">
                     <div v-for="msg in messages" :key="msg.id" class="msg-row" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
                         <div v-if="msg.sender_id !== currentUser.id" class="msg-avatar">
                             {{ getSenderInitial(msg.sender_id) }}
@@ -363,7 +360,6 @@
                             </div>
                         </div>
                     </div>
-                    </TransitionGroup>
                 </div>
 
                 <div class="chat-footer">
@@ -384,7 +380,6 @@
                         <button class="tool-btn" @click="triggerFile"><i class="bi bi-paperclip"></i></button>
                         <input type="file" id="fileInput" hidden @change="handleFile">
                         <button class="tool-btn" @mousedown="startRecord" @touchstart.prevent="startRecord"><i class="bi bi-mic"></i></button>
-                        <button class="tool-btn" @click.stop="showEmoji = !showEmoji"><i class="bi bi-emoji-smile"></i></button>
                         
                         <div class="input-wrapper">
                             <input type="text" class="msg-input" v-model="newMessage" placeholder="写信..." @keyup.enter="sendMessage" @focus="markRead">
@@ -392,10 +387,6 @@
                         
                         <button class="send-btn" @click="sendMessage" v-if="newMessage.trim()"><i class="bi bi-arrow-up"></i></button>
                     </template>
-                    <div class="emoji-box" v-if="showEmoji" @click.stop>
-                        <div class="emoji-nav"><div class="e-tab" :class="{active: emojiTab===i}" v-for="(cat,i) in ['😀','🐻','🍎','⚽']" @click="emojiTab=i">{{cat}}</div></div>
-                        <div class="emoji-grid"><div class="e-item" v-for="e in currentEmojis" @click="addEmoji(e)">{{e}}</div></div>
-                    </div>
                 </div>
             </template>
             <template v-else>
@@ -410,8 +401,6 @@
     const SUPABASE_KEY = 'sb_publishable_UlNMDLt4OaYIX-_lCezGwA_8jIQLhFO';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { createApp, ref, onMounted, nextTick, onUnmounted, computed } = Vue;
-
-    const EMOJIS = [['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],['🐵','🐒','🦍','🦧','🐶','🐕','🦮','🐕‍🦺','🐩','🐺','🦊','🦝','🐱','🐈','🐈‍⬛','🦁','🐯','🐅','🐆','🐴','🐎','🦄','🦓','🦌','🐮','ox','🐃','🐄','🐷','🐖','🐗','🐽','🐏','🐑','🐐','🐪','🐫','🦙','🦙','🦒','🐘','🦣','🦏','🦛','🐭','🐁','🐀','🐹','🐰','🐇','🐿️','🦫','🦔','🦔','🦇','🐻','🐻‍❄️','🐨','🐼','🦥','🦦','🦦','🦨','🐣','🐤','🐥','🐦','🐧','🕊️','🦅','🦆','🦢','🦉','🦤','🦩','🦚','🦜','🦜','🐸','🐊','🐢','🦎','🐍','🐲','🐉','🦕','🦖','🐳','🐋','🐬','🐟','🐠','🐡','🦈','🐙','🐚','🐌','🦋','🐛','🐜','🐝','🪲','🐞','🦗','🕷️','🕸️','🦂','🦟','🪰','🪱','🦠'],['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🍥','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','🍼','☕','🫖','🍵','🍶','🍾','🍷','🍸','🍹','🍺','🍻','🥂','🥃','🥤','🧋','🧃','🧉','🧊','🥢','🍽️','🍴','🥄'],['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🎱','🪀','🏓','🏸','🏸','🏒','🏑','⛳','⛳','🏹','🥅','🥅','🥊','🥋','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🥌','🎿','🎿','⛷️','🏂','🪂','🏋️','🏋️‍♂️','🏋️‍♀️','🤼','🤼‍♂️','🤼‍♀️','🤸','🤸‍♂️','🤸‍♀️','⛹️','⛹️‍♂️','⛹️‍♀️','🤺','🤾','🤾‍♂️','🤾‍♀️','🏌️','🏌️‍♂️','🏌️‍♀️','🏇','🧘','🧘‍♂️','🧘‍♀️','🏄','🏄‍♂️','🏄‍♀️','🏊','🏊‍♂️','🏊‍♀️','🤽','🤽‍♂️','🤽‍♀️','🚣','🚣‍♂️','🚣‍♀️','🧗','🧗‍♂️','🧗‍♀️','🚵','🚵‍♂️','🚵‍♀️','🚴','🚴‍♂️','🚴‍♀️','🏆','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎫','🎟️','🎪','🤹','🤹‍♂️','🤹‍♀️','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🪕','🎻','🎲','🧩','♟️','🎯','🎳','🪀','🪁','🎮','👾','🎰','🎰']];
 
     createApp({
         setup() {
@@ -433,13 +422,12 @@
             const isMobile = ref(window.innerWidth <= 768);
             
             const modalType = ref(null); const modalError = ref(''); const modalTitle = ref(''); const modalInput = ref(''); const profileForm = ref({ username: '', password: '' }); const modalMsg = ref('');
-            const previewUrl = ref(null); const showEmoji = ref(false); const emojiTab = ref(0); const ctxMenu = ref({ show: false, x: 0, y: 0, msg: null });
+            const previewUrl = ref(null); const ctxMenu = ref({ show: false, x: 0, y: 0, msg: null });
             
             const isRecording = ref(false); const voiceBlob = ref(null); const playingId = ref(null); const playProgress = ref(0);
             let mediaRecorder = null; let audioChunks = []; let currentAudio = null; let progInterval = null; let pollingInterval = null; let touchTimer = null;
             let pendingAction = ref(null); 
 
-            const currentEmojis = computed(() => EMOJIS[emojiTab.value]);
             const canRecall = computed(() => ctxMenu.value.msg && (new Date() - new Date(ctxMenu.value.msg.created_at)) / 1000 / 60 < 2);
 
             onMounted(() => {
@@ -529,7 +517,7 @@
 
             const sendMessage = async () => {
                 if(!newMessage.value.trim() && !newMessage.value.startsWith('img::')) return;
-                const content = newMessage.value; newMessage.value = ''; showEmoji.value = false;
+                const content = newMessage.value; newMessage.value = '';
                 const payload = { sender_id: currentUser.value.id, content, msg_type: 'text' };
                 if(currentChat.value.type === 'group') payload.group_id = currentChat.value.id; else payload.receiver_id = currentChat.value.id;
                 const tmp = { ...payload, id: Date.now(), created_at: new Date().toISOString(), is_read: false };
@@ -625,6 +613,7 @@
             };
 
             const updateProfile = async () => { /* ... */ };
+            const openFriendCtx = (f, e) => { /* 预留右键逻辑 */ };
 
             // Realtime & Utils
             const setupRealtime = () => {
@@ -689,8 +678,7 @@
             };
             const stopAudio = () => { if(currentAudio){currentAudio.pause();currentAudio=null;} clearInterval(progInterval); playingId.value=null; playProgress.value=0; };
             const triggerFile = () => document.getElementById('fileInput').click();
-            const addEmoji = (e) => newMessage.value += e;
-            const handleClickOutside = () => { showEmoji.value = false; ctxMenu.value.show = false; };
+            const closePopups = () => { ctxMenu.value.show = false; };
             const openCtxMenu = (e, msg) => { if(msg.sender_id===currentUser.value.id && !msg.is_recalled) { ctxMenu.value={show:true, x:e.clientX, y:e.clientY, msg}; } };
             const handleMobileCtx = (e, msg) => { if(isMobile.value && msg.sender_id===currentUser.value.id) { e.preventDefault(); openCtxMenu(e, msg); } };
             const handleTouchStart = (e, msg) => { if(msg.sender_id!==currentUser.value.id||msg.is_recalled)return; touchTimer=setTimeout(()=>{openCtxMenu({clientX:e.touches[0].clientX,clientY:e.touches[0].clientY},msg); if(navigator.vibrate)navigator.vibrate(50);},500); };
@@ -704,10 +692,10 @@
 
             return {
                 currentUser, loginForm, isRegistering, loading, errorMessage, friends, groups, currentChat, messages, newMessage, isConnected, activeTab,
-                modalType, modalError, modalTitle, modalInput, modalMsg, profileForm, previewUrl, showEmoji, EMOJIS, ctxMenu, canRecall, isRecording, voiceBlob, playingId, playProgress,
-                handleLogin, logout, openModal, closeModal, addFriend, createGroup, inviteMember, updateProfile, updateAlias, openChat, closeChat, promptAction, confirmActionCallback,
+                modalType, modalError, modalTitle, modalInput, modalMsg, profileForm, previewUrl, ctxMenu, canRecall, isRecording, voiceBlob, playingId, playProgress,
+                handleLogin, logout, openModal, closeModal, addFriend, createGroup, inviteMember, updateProfile, updateAlias, openChat, closeChat, promptAction, confirmActionCallback, openFriendCtx,
                 sendMessage, triggerFile, handleFile, startRecord, stopRecord, playDraftVoice, uploadVoice, toggleVoice,
-                openCtxMenu, handleTouchStart, handleTouchEnd, handleTouchMove, recallMsg, deleteMsg, closePopups: handleClickOutside, previewImg: (u)=>previewUrl.value=u, addEmoji,
+                openCtxMenu, handleTouchStart, handleTouchEnd, handleTouchMove, recallMsg, deleteMsg, closePopups, previewImg: (u)=>previewUrl.value=u,
                 formatTime, getPreview, markRead, onImgLoad: scrollToBottom, getSenderInitial, getSenderName
             };
         }
