@@ -2,7 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+    <!-- 核心：完美适配移动端，禁止缩放，适配刘海屏 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>11s Chat</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>">
     
@@ -12,495 +13,552 @@
 
     <style>
         :root {
-            --bg-paper: #fdf6e3; --bg-sidebar: #f5eacb; --bg-accent: #d4c5a3;     
-            --text-main: #4a3b2a; --text-light: #8b7e74; --border: #dcd3c1;
-            --msg-sent: #eaddcf; --msg-received: #ffffff;  
-            --btn-primary: #5b4636; --btn-hover: #423226; --radius: 12px;
-            --danger: #ef4444; --success: #34c759;
+            --bg-paper: #f7f1e3;      /* 更柔和的羊皮纸色 */
+            --bg-sidebar: #f0e6d2;    
+            --bg-accent: #c0b298;     
+            --text-main: #2c241b;     
+            --text-light: #857a6e;
+            --border: #dcd3c1;
+            
+            --msg-sent: #e2dcc8;      
+            --msg-received: #ffffff;  
+            
+            --btn-primary: #5c4b3c;
+            --btn-hover: #3e3228;
+            --blue-read: #3498db;     /* 已读回执蓝 */
+
+            --shadow-sm: 0 2px 8px rgba(44, 36, 27, 0.05);
+            --shadow-md: 0 8px 24px rgba(44, 36, 27, 0.12);
+            --radius: 12px;
         }
+
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            background-color: var(--bg-paper); color: var(--text-main); 
-            font-family: "Georgia", "Songti SC", serif; 
-            height: 100vh; height: 100dvh; display: flex; justify-content: center; align-items: center; overflow: hidden; 
+
+        body {
+            background-color: var(--bg-paper);
+            color: var(--text-main);
+            font-family: "Georgia", "Songti SC", "STSong", serif;
+            height: 100vh; height: 100dvh; /* 适配移动端浏览器高度 */
+            display: flex; justify-content: center; overflow: hidden;
         }
+
+        #app { width: 100%; height: 100%; display: flex; position: relative; max-width: 1600px; background: #fff; box-shadow: 0 0 50px rgba(0,0,0,0.05); }
+
+        /* --- 侧边栏 --- */
+        .sidebar {
+            width: 300px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 20px; z-index: 20;
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .brand {
+            font-size: 20px; font-weight: bold; margin-bottom: 25px; 
+            display: flex; align-items: center; justify-content: space-between; color: var(--text-main);
+        }
+        .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: 0.3s; }
+        .conn-dot.online { background: #2ecc71; box-shadow: 0 0 6px #2ecc71; }
+
+        .section-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 12px; color: var(--text-light); font-weight: bold; letter-spacing: 1px; }
+        .icon-btn { cursor: pointer; padding: 4px; font-size: 16px; transition: 0.2s; } .icon-btn:hover { color: var(--text-main); transform: scale(1.1); }
+
+        .friend-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .friend-item {
+            padding: 12px; border-radius: var(--radius); cursor: pointer; transition: 0.2s;
+            display: flex; align-items: center; gap: 12px; border: 1px solid transparent;
+        }
+        .friend-item:hover { background: rgba(255,255,255,0.4); }
+        .friend-item.active { background: #fff; border-color: rgba(0,0,0,0.05); box-shadow: var(--shadow-sm); }
         
-        #app { width: 100%; height: 100%; display: flex; position: relative; }
+        .avatar {
+            width: 44px; height: 44px; background: var(--bg-accent); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-weight: bold; 
+            color: #fff; font-size: 18px; flex-shrink: 0; text-transform: uppercase;
+        }
+        .friend-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .friend-top { display: flex; justify-content: space-between; align-items: center; }
+        .friend-name { font-weight: bold; font-size: 15px; }
+        .friend-time { font-size: 10px; opacity: 0.5; font-family: sans-serif; }
+        .friend-msg { font-size: 13px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0.8; }
+        .unread-dot { min-width: 18px; height: 18px; background: #e74c3c; color: white; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; padding: 0 5px; font-family: sans-serif; }
 
-        /* 侧边栏 */
-        .sidebar { width: 280px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; z-index: 10; transition: transform 0.3s ease; }
-        .brand { font-size: 22px; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
-        .conn-status { width: 8px; height: 8px; border-radius: 50%; background: #ccc; margin-left: auto; }
-        .conn-status.online { background: #34c759; box-shadow: 0 0 5px #34c759; }
+        .user-footer { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        .user-name { font-weight: bold; font-size: 14px; }
+
+        /* --- 聊天主窗口 --- */
+        .main-chat {
+            flex: 1; display: flex; flex-direction: column; position: relative; z-index: 10;
+            background-color: var(--bg-paper);
+            background-image: radial-gradient(#d4cbb8 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .chat-header {
+            height: 64px; padding: 0 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 16px; font-size: 17px; font-weight: bold;
+            background: rgba(253, 246, 227, 0.95); backdrop-filter: blur(12px);
+        }
+        .back-btn { display: none; font-size: 22px; cursor: pointer; padding: 4px; }
+
+        .chat-area { flex: 1; overflow-y: auto; padding: 20px 30px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: auto; }
+
+        /* 消息气泡 & 动画 */
+        .msg-row { display: flex; flex-direction: column; max-width: 70%; position: relative; animation: msgSlideUp 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) forwards; }
+        @keyframes msgSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
-        .icon-btn { cursor: pointer; font-size: 18px; padding: 5px; }
+        .msg-row.sent { align-self: flex-end; align-items: flex-end; }
+        .msg-row.received { align-self: flex-start; align-items: flex-start; }
+
+        .bubble {
+            padding: 10px 16px; border-radius: 12px; font-size: 15px; line-height: 1.5;
+            box-shadow: 1px 1px 3px rgba(0,0,0,0.05); position: relative; word-wrap: break-word; min-width: 60px;
+        }
+        .msg-row.sent .bubble { background: var(--msg-sent); border-bottom-right-radius: 2px; }
+        .msg-row.received .bubble { background: var(--msg-received); border-bottom-left-radius: 2px; }
+        .bubble.recalled { background: rgba(0,0,0,0.03); color: #999; font-style: italic; font-size: 13px; box-shadow: none; padding: 6px 12px; }
         
-        .friend-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .friend-item { padding: 12px; border-radius: var(--radius); cursor: pointer; display: flex; align-items: center; gap: 12px; position: relative; }
-        .friend-item.active { background-color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .avatar { width: 42px; height: 42px; background: var(--bg-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-size: 16px; flex-shrink: 0; }
-        .friend-info { flex: 1; min-width: 0; }
-        .friend-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
-        .friend-preview { font-size: 12px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .unread-badge { background: var(--danger); color: white; font-size: 10px; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; font-weight: bold; }
-
-        .user-panel { margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; }
-        .action-icon { font-size: 20px; cursor: pointer; color: var(--text-light); padding: 5px; margin-left: auto; }
-
-        /* 聊天主窗口 */
-        .main-chat { flex: 1; display: flex; flex-direction: column; background-image: radial-gradient(#dccdb3 1px, transparent 1px); background-size: 24px 24px; position: relative; z-index: 5; }
-        .chat-header { height: 60px; padding: 0 20px; border-bottom: 1px solid var(--border); background: rgba(253, 246, 227, 0.95); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 16px; z-index: 20; }
-        .back-btn { display: none; font-size: 20px; cursor: pointer; padding: 10px; margin-left: -10px; }
-
-        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; scroll-behavior: auto; }
+        .voice-player { display: flex; align-items: center; gap: 10px; width: 200px; height: 34px; cursor: pointer; max-width: 50vw; min-width: 140px; }
+        .v-btn { font-size: 22px; display: flex; color: var(--btn-primary); }
+        .v-track { flex: 1; height: 3px; background: rgba(0,0,0,0.1); border-radius: 2px; overflow: hidden; }
+        .v-prog { height: 100%; background: var(--btn-primary); width: 0%; transition: width 0.1s linear; }
+        .v-time { font-size: 12px; opacity: 0.6; font-family: sans-serif; min-width: 24px; text-align: right; }
+        .msg-img { max-width: 100%; border-radius: 8px; cursor: zoom-in; display: block; }
+        .file-content { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.04); padding: 8px 12px; border-radius: 8px; text-decoration: none; color: var(--text-main); font-size: 13px; }
         
-        /* 消息气泡容器 */
-        .message-row { display: flex; flex-direction: column; max-width: 80%; position: relative; }
-        .message-row.sent { align-self: flex-end; align-items: flex-end; }
-        .message-row.received { align-self: flex-start; align-items: flex-start; }
+        .msg-meta { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 10px; opacity: 0.5; font-family: sans-serif; }
+        /* 已读回执图标 */
+        .read-icon { font-size: 14px; line-height: 1; color: #aaa; transition: color 0.3s; }
+        .read-icon.read { color: var(--blue-read); }
 
-        /* 动画 TransitionGroup */
-        .msg-anim-enter-active { transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-        .msg-anim-enter-from { opacity: 0; transform: translateY(20px); }
-
-        .message-bubble { padding: 10px 14px; border-radius: 16px; font-size: 15px; line-height: 1.5; box-shadow: 1px 1px 3px rgba(0,0,0,0.05); position: relative; word-wrap: break-word; }
-        .message-bubble.sent { background-color: var(--msg-sent); border-bottom-right-radius: 2px; }
-        .message-bubble.received { background-color: var(--msg-received); border-bottom-left-radius: 2px; }
-        .message-bubble.recalled { background: rgba(0,0,0,0.03); color: #999; font-style: italic; font-size: 13px; padding: 8px 12px; box-shadow: none; }
-
-        /* 修复后的语音条：响应式宽度 */
-        .voice-player { display: flex; align-items: center; gap: 10px; width: 100%; min-width: 120px; max-width: 220px; height: 32px; cursor: pointer; }
-        .voice-btn { font-size: 22px; color: var(--text-main); display: flex; }
-        .voice-track { flex: 1; height: 3px; background: rgba(0,0,0,0.1); border-radius: 2px; overflow: hidden; }
-        .voice-progress { height: 100%; background: var(--text-main); width: 0%; }
-        .voice-duration { font-size: 12px; color: var(--text-light); white-space: nowrap; }
-
-        .msg-img { max-width: 100%; border-radius: 8px; display: block; }
-        .msg-file { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-main); text-decoration: none; }
-        
-        /* 状态脚标 (已读回执) */
-        .msg-footer { display: flex; align-items: center; gap: 4px; margin-top: 2px; justify-content: flex-end; width: 100%; }
-        .msg-time { font-size: 10px; opacity: 0.5; }
-        .read-icon { font-size: 14px; line-height: 1; color: #999; }
-        .read-icon.read { color: #34c759; } /* 对方已读变绿 */
-
-        /* 输入区 */
-        .chat-input-area { padding: 10px; border-top: 1px solid var(--border); background: rgba(253, 246, 227, 0.95); display: flex; gap: 8px; align-items: flex-end; min-height: 56px; }
-        .toolbar-btn { background: transparent; border: none; color: var(--text-light); font-size: 22px; padding: 8px; transition: 0.2s; flex-shrink: 0; }
-        .toolbar-btn:active { color: var(--text-main); }
-        .toolbar-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
+        /* Footer */
+        .chat-footer {
+            padding: 10px 15px; background: #fff; border-top: 1px solid var(--border);
+            display: flex; align-items: flex-end; gap: 10px; min-height: 64px;
+        }
+        .tool-btn { width: 36px; height: 36px; border-radius: 50%; border: none; background: transparent; color: var(--text-light); font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .tool-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
+        .tool-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        .input-wrapper { flex: 1; background: #fdfdfd; border: 1px solid var(--border); border-radius: 20px; padding: 8px 12px; min-height: 40px; display: flex; align-items: center; }
+        .msg-input { width: 100%; border: none; background: transparent; outline: none; font-size: 15px; font-family: inherit; resize: none; max-height: 100px; line-height: 20px; }
+        .send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--btn-primary); color: #fff; border: none; font-size: 18px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: 0.2s; margin-bottom: 2px; }
+        .send-btn:active { transform: scale(0.9); }
 
-        .input-box { flex: 1; border: 1px solid var(--border); background: #fff; padding: 10px 12px; border-radius: 18px; font-size: 15px; outline: none; height: 40px; margin-bottom: 5px; }
-        .send-btn { background: var(--btn-primary); color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; margin-bottom: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        /* 录音确认 */
+        .record-confirm { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 20px; padding: 0 15px; height: 40px; border: 1px solid var(--border); }
+        .record-bar { flex: 1; display: flex; align-items: center; justify-content: center; background: #fff0f0; border-radius: 20px; height: 40px; color: #e74c3c; font-weight: bold; font-size: 14px; cursor: pointer; border: 1px solid #ffcccc; user-select: none; }
+        .rc-btn { font-size: 24px; padding: 5px; cursor: pointer; }
 
-        /* 语音确认条 */
-        .voice-confirm-bar { flex: 1; display: flex; align-items: center; justify-content: space-between; background: #fff; border-radius: 18px; padding: 5px 15px; height: 44px; margin-bottom: 5px; border: 1px solid var(--border); }
-        .voice-confirm-text { font-size: 13px; color: #666; }
-        .vc-btn { font-size: 20px; padding: 5px; cursor: pointer; }
-        .vc-play { color: var(--text-main); }
-        .vc-cancel { color: var(--danger); }
-        .vc-send { color: var(--success); }
+        /* 表情面板 */
+        .emoji-box {
+            position: absolute; bottom: 70px; left: 10px; width: 320px; height: 250px;
+            background: #fff; border-radius: 12px; box-shadow: var(--shadow-md); border: 1px solid var(--border);
+            z-index: 50; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .emoji-nav { display: flex; border-bottom: 1px solid #eee; background: #fcfcfc; }
+        .e-tab { flex: 1; padding: 8px; text-align: center; cursor: pointer; opacity: 0.6; font-size: 18px; }
+        .e-tab.active { opacity: 1; border-bottom: 2px solid var(--btn-primary); background: #fff; }
+        .emoji-grid { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+        .e-item { font-size: 26px; cursor: pointer; padding: 5px; text-align: center; color: #000; }
+        .e-item:active { background: #f0f0f0; border-radius: 4px; }
 
         /* 移动端适配 */
         @media (max-width: 768px) {
-            .sidebar { width: 100%; }
-            .main-chat { position: fixed; top: 0; left: 0; width: 100%; height: 100%; transform: translateX(100%); transition: transform 0.25s ease-in-out; }
+            .sidebar { width: 100%; position: absolute; height: 100%; }
+            .main-chat { 
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                z-index: 20; /* 盖住 Sidebar */
+            }
             .main-chat.active { transform: translateX(0); }
             .back-btn { display: block; }
-            .sidebar.chat-open { display: none; } /* 性能优化 */
-            .message-row { max-width: 85%; }
-            .voice-player { max-width: 60vw; } /* 关键修复：限制语音条宽度 */
+            .emoji-box { width: 96%; left: 2%; bottom: 80px; }
+            .message-bubble { font-size: 16px; padding: 10px 14px; }
         }
-        
-        /* 模态框等样式保持不变... */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 59, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 100; }
-        .modal-card { background: #fffbf0; padding: 30px; width: 85%; max-width: 320px; border-radius: 16px; text-align: center; border: 1px solid var(--border); }
-        .modal-input { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; }
-        .modal-btn { width: 100%; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; }
-        .context-menu { position: fixed; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 5px 0; z-index: 1000; min-width: 120px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        .menu-item { padding: 10px 15px; font-size: 14px; display: flex; gap: 8px; }
-        .emoji-panel { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); background: #fff; border: 1px solid var(--border); border-radius: 12px; width: 95%; max-width: 340px; height: 250px; z-index: 50; display: flex; flex-direction: column; }
-        .emoji-content { flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
-        .emoji-item { font-size: 24px; text-align: center; padding: 5px; }
+
+        /* Modals & Utils */
+        .modal-mask { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 36, 27, 0.4); backdrop-filter: blur(4px); z-index: 100; display: flex; justify-content: center; align-items: center; }
+        .modal { background: #fffbf0; width: 340px; padding: 30px; border-radius: 16px; box-shadow: var(--shadow-md); border: 1px solid var(--border); text-align: center; position: relative; }
+        .m-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border); border-radius: 8px; outline: none; font-size: 15px; background: #fff; }
+        .m-btn { width: 100%; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .close-modal { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--text-light); }
+        .ctx-menu { position: fixed; background: #fff; border-radius: 8px; box-shadow: var(--shadow-md); padding: 4px 0; z-index: 200; min-width: 120px; border: 1px solid var(--border); }
+        .ctx-item { padding: 12px 16px; font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .ctx-item:active { background: var(--bg-paper); } .ctx-item.del { color: var(--danger); }
+        .img-modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:300; display:flex; justify-content:center; align-items:center; cursor: zoom-out; }
+        .img-full { max-width:100%; max-height:100%; object-fit: contain; }
     </style>
 </head>
 <body>
 
-<div id="app" @click="handleClickOutside">
-    <div class="context-menu" v-if="contextMenu.visible" :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" @click.stop>
-        <div class="menu-item" v-if="canRecall" @click="recallMessage"><i class="bi bi-arrow-counterclockwise"></i> 撤回</div>
-        <div class="menu-item" style="color:var(--danger)" @click="deleteMessage"><i class="bi bi-trash"></i> 删除</div>
+<div id="app" @click="closePopups">
+    <div class="img-modal" v-if="previewUrl" @click="previewImg(null)"><img :src="previewUrl" class="img-full"></div>
+
+    <div class="ctx-menu" v-if="ctxMenu.show" :style="{top:ctxMenu.y+'px', left:ctxMenu.x+'px'}" @click.stop>
+        <div class="ctx-item" v-if="canRecall" @click="recallMsg"><i class="bi bi-arrow-counterclockwise"></i> 撤回</div>
+        <div class="ctx-item del" @click="deleteMsg"><i class="bi bi-trash"></i> 删除</div>
     </div>
 
-    <div class="modal-overlay" v-if="!currentUser">
-        <div class="modal-card">
-            <h2 style="margin-bottom: 20px; color: var(--text-main);">11s Chat</h2>
-            <input type="text" class="modal-input" v-model="loginForm.username" placeholder="用户名">
-            <input type="password" class="modal-input" v-model="loginForm.password" placeholder="密码">
-            <button class="modal-btn" @click="handleLogin">{{ isRegistering ? '注册' : '登录' }}</button>
-            <div style="margin-top:15px; font-size:12px; color:#888;" @click="isRegistering = !isRegistering">{{ isRegistering ? '返回登录' : '创建账号' }}</div>
-            <div style="color:red; font-size:12px; margin-top:10px;">{{ errorMessage }}</div>
+    <!-- Auth Modal -->
+    <div class="modal-mask" v-if="!currentUser">
+        <div class="modal">
+            <h2 style="margin-bottom: 20px;">11s Chat</h2>
+            <input type="text" class="m-input" v-model="loginForm.username" placeholder="用户名" @keyup.enter="handleLogin">
+            <input type="password" class="m-input" v-model="loginForm.password" placeholder="密码" @keyup.enter="handleLogin">
+            <button class="m-btn" @click="handleLogin" :disabled="loading">{{ loading ? 'Loading...' : (isRegistering ? '注册' : '登录') }}</button>
+            <div style="margin-top:15px; font-size:13px; color:#888; cursor:pointer;" @click="isRegistering = !isRegistering; errorMsg=''">
+                {{ isRegistering ? '返回登录' : '创建新账号' }}
+            </div>
+            <div style="color:#e74c3c; font-size:13px; margin-top:10px;">{{ errorMsg }}</div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-mask" v-if="modalType">
+        <div class="modal">
+            <i class="bi bi-x close-modal" @click="closeModal"></i>
+            <h3 style="margin-bottom:15px;">{{ modalTitle }}</h3>
+            <template v-if="modalType === 'addFriend'">
+                <input type="text" class="m-input" v-model="friendInput" placeholder="输入对方用户名">
+                <button class="m-btn" @click="addFriend" :disabled="loading">添加</button>
+            </template>
+            <template v-if="modalType === 'editProfile'">
+                <input type="text" class="m-input" v-model="profileForm.username" placeholder="新用户名">
+                <input type="password" class="m-input" v-model="profileForm.password" placeholder="新密码 (留空不改)">
+                <button class="m-btn" @click="updateProfile" :disabled="loading">保存</button>
+            </template>
+            <div style="color:#e74c3c; font-size:13px; margin-top:10px;" v-if="modalError">{{ modalError }}</div>
         </div>
     </div>
 
     <template v-if="currentUser">
-        <div class="sidebar" :class="{ 'chat-open': currentChat }">
-            <div class="brand">
-                <span><i class="bi bi-feather"></i> 11s Chat</span>
-                <span class="conn-status" :class="{ online: isConnected }"></span>
-            </div>
-            <div class="section-header">
-                联系人 <i class="bi bi-plus-circle-fill icon-btn" @click="addFriendPrompt"></i>
-            </div>
+        <div class="sidebar" :class="{ hidden: currentChat && isMobile }">
+            <div class="brand"><span><i class="bi bi-feather"></i> 11s Chat</span><div class="conn-dot" :class="{ online: isConnected }"></div></div>
+            <div class="section-bar"><span>联系人</span><i class="bi bi-plus-circle icon-btn" @click="openModal('addFriend')"></i></div>
             <div class="friend-list">
-                <div v-for="friend in friends" :key="friend.id" class="friend-item" @click="selectChat(friend)">
-                    <div class="avatar">{{ friend.username.substring(0,1) }}</div>
+                <div v-for="f in friends" :key="f.id" class="friend-item" :class="{active: currentChat?.id===f.id}" @click="openChat(f)">
+                    <div class="avatar">{{ f.username.charAt(0) }}</div>
                     <div class="friend-info">
-                        <div class="friend-name">{{ friend.username }}</div>
-                        <div class="friend-preview">{{ getPreviewText(friend.lastMsg) }}</div>
+                        <div class="friend-top"><span class="friend-name">{{ f.username }}</span><span class="friend-time" v-if="f.lastMsg">{{ formatTime(f.lastMsg.created_at, true) }}</span></div>
+                        <div class="friend-top"><span class="friend-msg">{{ getPreview(f.lastMsg) }}</span><div class="unread-dot" v-if="f.unread > 0">{{ f.unread }}</div></div>
                     </div>
-                    <div class="unread-badge" v-if="friend.unread > 0">{{ friend.unread }}</div>
                 </div>
+                <div v-if="friends.length===0" style="text-align:center; padding:30px; font-size:13px; color:#999;">暂无好友</div>
             </div>
-            <div class="user-panel">
-                <div class="avatar" style="width:32px; height:32px; font-size:14px;">{{ currentUser.username.substring(0,1) }}</div>
-                <div style="font-weight:bold;">{{ currentUser.username }}</div>
-                <i class="bi bi-box-arrow-right action-icon" @click="logout"></i>
+            <div class="user-footer">
+                <div style="display:flex; align-items:center; gap:10px;"><div class="avatar" style="width:32px; height:32px; font-size:14px; background:var(--text-main);">{{ currentUser.username.charAt(0) }}</div><span class="user-name">{{ currentUser.username }}</span></div>
+                <div style="display:flex; gap:10px; font-size:18px; color:var(--text-light);"><i class="bi bi-gear-fill icon-btn" @click="openModal('editProfile')"></i><i class="bi bi-box-arrow-right icon-btn" @click="logout"></i></div>
             </div>
         </div>
 
         <div class="main-chat" :class="{ active: currentChat }">
             <template v-if="currentChat">
-                <div class="chat-header">
-                    <i class="bi bi-chevron-left back-btn" @click="backToFriends"></i>
-                    <span>{{ currentChat.username }}</span>
-                </div>
-                
-                <div class="chat-messages" id="msg-container" @click="showEmoji = false">
+                <div class="chat-header"><i class="bi bi-chevron-left back-btn" @click="closeChat"></i><span>{{ currentChat.username }}</span></div>
+                <div class="chat-area" id="msg-box" @scroll="onScroll" @click="showEmoji=false">
                     <TransitionGroup name="msg-anim">
-                        <div v-for="msg in messages" :key="msg.id" class="message-row" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
-                            <div class="message-bubble" 
-                                 :class="[msg.sender_id === currentUser.id ? 'sent' : 'received', { recalled: msg.is_recalled }]"
-                                 @contextmenu.prevent="showContextMenu($event, msg)"
-                                 @click="handleMsgClick($event, msg)">
-                                
-                                <template v-if="msg.is_recalled">
-                                    <i class="bi bi-arrow-counterclockwise"></i> 消息已撤回
-                                </template>
-                                
+                        <div v-for="msg in messages" :key="msg.id" class="msg-row" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
+                            <div class="bubble" :class="{ recalled: msg.is_recalled }" @contextmenu.prevent="openCtxMenu($event, msg)" @click="handleMobileCtx($event, msg)">
+                                <div v-if="msg.is_recalled"><i class="bi bi-arrow-counterclockwise"></i> 撤回</div>
                                 <template v-else>
                                     <div v-if="msg.msg_type === 'text'">{{ msg.content }}</div>
-                                    <img v-else-if="msg.msg_type === 'image'" :src="msg.file_url" class="msg-img">
+                                    <img v-else-if="msg.msg_type === 'image'" :src="msg.file_url" class="img-content" @click.stop="previewImg(msg.file_url)">
+                                    <a v-else-if="msg.msg_type === 'file'" :href="msg.file_url" target="_blank" class="file-content"><i class="bi bi-file-earmark"></i> {{ msg.file_name || '文件' }}</a>
                                     <div v-else-if="msg.msg_type === 'voice'" class="voice-player" @click.stop="toggleVoice(msg)">
-                                        <div class="voice-btn"><i class="bi" :class="playingAudioId === msg.id ? 'bi-pause-fill' : 'bi-play-fill'"></i></div>
-                                        <div class="voice-track"><div class="voice-progress" :style="{ width: (playingAudioId === msg.id ? playProgress : 0) + '%' }"></div></div>
-                                        <div class="voice-duration">{{ msg.file_name?.replace(/[^\d]/g, '') || '' }}s</div>
-                                    </div>
-                                    
-                                    <div class="msg-footer">
-                                        <span class="msg-time">{{ formatTime(msg.created_at) }}</span>
-                                        <i v-if="msg.sender_id === currentUser.id" class="bi read-icon" 
-                                           :class="msg.is_read ? 'bi-check2-all read' : 'bi-check2'" 
-                                           :title="msg.is_read ? '已读' : '已发送'"></i>
+                                        <div class="v-btn"><i class="bi" :class="playingId === msg.id ? 'bi-pause-fill' : 'bi-play-fill'"></i></div>
+                                        <div class="v-track"><div class="v-prog" :style="{width: (playingId === msg.id ? playProgress : 0) + '%'}"></div></div>
+                                        <div class="v-time">{{ msg.file_name?.replace(/[^\d]/g, '') || '' }}s</div>
                                     </div>
                                 </template>
+                            </div>
+                            <div class="msg-meta" v-if="!msg.is_recalled">
+                                <span v-if="msg.sender_id === currentUser.id" class="read-icon" :class="{ read: msg.is_read }"><i class="bi" :class="msg.is_read ? 'bi-check2-all' : 'bi-check2'"></i></span>
+                                <span>{{ formatTime(msg.created_at) }}</span>
                             </div>
                         </div>
                     </TransitionGroup>
                 </div>
-                
-                <div class="chat-input-area">
-                    <button class="toolbar-btn" @click="triggerFileUpload"><i class="bi bi-paperclip"></i></button>
-                    <input type="file" id="fileInput" style="display:none" @change="handleFileUpload">
-
-                    <button class="toolbar-btn" :class="{ recording: isRecording }" 
-                            @mousedown="startRecord" @mouseup="stopRecord" 
-                            @touchstart.prevent="startRecord" @touchend.prevent="stopRecord">
-                        <i class="bi bi-mic"></i>
-                    </button>
-
-                    <button class="toolbar-btn" @click.stop="showEmoji = !showEmoji"><i class="bi bi-emoji-smile"></i></button>
-                    <div class="emoji-panel" v-if="showEmoji" @click.stop>
-                        <div class="emoji-content">
-                            <div class="emoji-item" v-for="em in EMOJIS" @click="addEmoji(em)">{{ em }}</div>
-                        </div>
-                    </div>
-
-                    <template v-if="voiceReviewBlob">
-                        <div class="voice-confirm-bar">
-                            <span class="voice-confirm-text">语音待发送</span>
-                            <div style="display:flex; gap:10px;">
-                                <i class="bi bi-play-circle-fill vc-btn vc-play" @click="playReviewVoice"></i>
-                                <i class="bi bi-x-circle-fill vc-btn vc-cancel" @click="cancelVoice"></i>
-                                <i class="bi bi-check-circle-fill vc-btn vc-send" @click="confirmSendVoice"></i>
+                <div class="chat-footer">
+                    <template v-if="voiceBlob">
+                        <div class="record-confirm">
+                            <span style="font-size:13px; color:#555;">语音待发送</span>
+                            <div style="display:flex; gap:15px;">
+                                <i class="bi bi-play-circle-fill rc-btn" style="color:var(--text-main);" @click="playDraftVoice"></i>
+                                <i class="bi bi-x-circle-fill rc-btn" style="color:var(--danger);" @click="voiceBlob=null"></i>
+                                <i class="bi bi-check-circle-fill rc-btn" style="color:var(--success);" @click="uploadVoice"></i>
                             </div>
                         </div>
                     </template>
-                    <template v-else>
-                        <input type="text" class="input-box" v-model="newMessage" placeholder="写信..." @keyup.enter="sendMessage" @focus="markAsRead">
-                        <button class="send-btn" @click="sendMessage"><i class="bi bi-send-fill"></i></button>
+                    <template v-else-if="isRecording">
+                        <div class="record-bar" @mouseup="stopRecord" @touchend="stopRecord"><i class="bi bi-mic-fill"></i> 松开结束录音</div>
                     </template>
+                    <template v-else>
+                        <button class="tool-btn" @click="triggerFile"><i class="bi bi-paperclip"></i></button>
+                        <input type="file" id="fileInput" hidden @change="handleFile">
+                        <button class="tool-btn" @mousedown="startRecord" @touchstart.prevent="startRecord"><i class="bi bi-mic"></i></button>
+                        <div class="input-wrapper">
+                            <input type="text" class="msg-input" v-model="newMessage" placeholder="写信..." @keyup.enter="sendText" @focus="markRead">
+                            <button class="tool-btn" @click.stop="showEmoji = !showEmoji"><i class="bi bi-emoji-smile"></i></button>
+                        </div>
+                        <button class="send-btn" @click="sendText" v-if="newMessage.trim()"><i class="bi bi-arrow-up"></i></button>
+                    </template>
+                    <div class="emoji-box" v-if="showEmoji" @click.stop>
+                        <div class="emoji-nav"><div class="e-tab" :class="{active: emojiTab===i}" v-for="(cat,i) in ['😀','🐻','🍎','⚽']" @click="emojiTab=i">{{cat}}</div></div>
+                        <div class="emoji-grid"><div class="e-item" v-for="e in currentEmojis" @click="addEmoji(e)">{{e}}</div></div>
+                    </div>
                 </div>
             </template>
             <template v-else>
-                <div class="empty-state d-none d-md-flex" style="flex:1; display:flex; align-items:center; justify-content:center; opacity:0.5;">
-                    选择好友
-                </div>
+                <div class="empty-state" style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; opacity:0.3;"><i class="bi bi-chat-dots" style="font-size:48px; margin-bottom:10px;"></i><div>选择好友开始聊天</div></div>
             </template>
         </div>
     </template>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://fznfneqwxzuwtognuoeo.supabase.co'; 
-    const SUPABASE_KEY = 'sb_publishable_UlNMDLt4OaYIX-_lCezGwA_8jIQLhFO'; 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const { createApp, ref, onMounted, nextTick, onUnmounted, computed } = Vue;
+const SUPABASE_URL = 'https://fznfneqwxzuwtognuoeo.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_UlNMDLt4OaYIX-_lCezGwA_8jIQLhFO';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const EMOJIS = ['😀','😂','🥰','😎','🤔','😡','😭','👍','🤝','🎉','🔥','❤️','📜','🖊️','☕','🍺','🍕','🐱','🐶','🐸','👻','👽','🤖','💩'];
+const { createApp, ref, onMounted, nextTick, onUnmounted, computed } = Vue;
+const EMOJIS = [['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','🙃','😉','😊','😇','🥰','😍','🤩','😘','😗','☺️','😚','😙','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','🤨','😐','😑','😶','😏','😒','🙄','😬','🤥','😌','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'],['🐵','🐒','🦍','🦧','🐶','🐕','🦮','🐕‍🦺','🐩','🐺','🦊','🦝','🐱','🐈','🐈‍⬛','🦁','🐯','🐅','🐆','🐴','🐎','🦄','🦓','🦌','🐮','ox','🐃','🐄','🐷','🐖','🐗','🐽','🐏','🐑','🐐','🐪','🐫','🦙','🦙','🦒','🐘','🦣','🦏','🦛','🐭','🐁','🐀','🐹','🐰','🐇','🐿️','🦫','🦔','🦔','🦇','🐻','🐻‍❄️','🐨','🐼','🦥','🦦','🦦','🦨','🐣','🐤','🐥','🐦','🐧','🕊️','🦅','🦆','🦢','🦉','🦤','🦩','🦚','🦜','🦜','🐸','🐊','🐢','🦎','🐍','🐲','🐉','🦕','🦖','🐳','🐋','🐬','🐟','🐠','🐡','🦈','🐙','🐚','🐌','🦋','🐛','🐜','🐝','🪲','🐞','🦗','🕷️','🕸️','🦂','🦟','🪰','🪱','🦠'],['🍏','🍎','🍐','🍊','🍋','🍌','🍉','🍇','🍓','🫐','🍈','🍒','🍑','🥭','🍍','🥥','🥝','🍅','🍆','🥑','🥦','🥬','🥒','🌶️','🫑','🌽','🥕','🫒','🧄','🧅','🥔','🍠','🥐','🥯','🍞','🥖','🥨','🧀','🥚','🍳','🧈','🥞','🧇','🥓','🥩','🍗','🍖','🦴','🌭','🍔','🍟','🍕','🫓','🥪','🥙','🌮','🌯','🫔','🥗','🥘','🫕','🥫','🍝','🍜','🍲','🍛','🍣','🍱','🥟','🍤','🍙','🍚','🍘','🍥','🍢','🍡','🍧','🍨','🍦','🥧','🧁','🍰','🎂','🍮','🍭','🍬','🍫','🍿','🍩','🍪','🌰','🥜','🍯','🥛','🍼','☕','🫖','🍵','🍶','🍾','🍷','🍸','🍹','🍺','🍻','🥂','🥃','🥤','🧋','🧃','🧉','🧊','🥢','🍽️','🍴','🥄'],['⚽','🏀','🏈','⚾','🥎','🎾','🏐','🏉','🥏','🎱','🎱','🪀','🏓','🏸','🏸','🏒','🏑','⛳','⛳','🏹','🥅','🥅','🥊','🥋','🥋','🎽','🛹','🛼','🛷','⛸️','🥌','🥌','🎿','🎿','⛷️','🏂','🪂','🏋️','🏋️‍♂️','🏋️‍♀️','🤼','🤼‍♂️','🤼‍♀️','🤸','🤸‍♂️','🤸‍♀️','⛹️','⛹️‍♂️','⛹️‍♀️','🤺','🤾','🤾‍♂️','🤾‍♀️','🏌️','🏌️‍♂️','🏌️‍♀️','🏇','🧘','🧘‍♂️','🧘‍♀️','🏄','🏄‍♂️','🏄‍♀️','🏊','🏊‍♂️','🏊‍♀️','🤽','🤽‍♂️','🤽‍♀️','🚣','🚣‍♂️','🚣‍♀️','🧗','🧗‍♂️','🧗‍♀️','🚵','🚵‍♂️','🚵‍♀️','🚴','🚴‍♂️','🚴‍♀️','🏆','🏆','🥇','🥈','🥉','🏅','🎖️','🏵️','🎗️','🎫','🎟️','🎪','🤹','🤹‍♂️','🤹‍♀️','🎭','🩰','🎨','🎬','🎤','🎧','🎼','🎹','🥁','🎷','🎺','🎸','🪕','🎻','🎲','🧩','♟️','🎯','🎳','🪀','🪁','🎮','👾','🎰','🎰']];
 
-    createApp({
-        setup() {
-            const currentUser = ref(null);
-            const loginForm = ref({ username: '', password: '' });
-            const isRegistering = ref(false);
-            const isLoading = ref(false);
-            const errorMessage = ref('');
-            const friends = ref([]);
-            const currentChat = ref(null);
-            const messages = ref([]);
-            const newMessage = ref('');
-            const isConnected = ref(false);
-            const showEmoji = ref(false);
-            const contextMenu = ref({ visible: false, x: 0, y: 0, msg: null });
-            
-            // Audio
-            const isRecording = ref(false);
-            const voiceReviewBlob = ref(null); // 待发送的语音
-            const playingAudioId = ref(null);
-            const playProgress = ref(0);
-            let mediaRecorder = null;
-            let audioChunks = [];
-            let currentAudioObj = null;
-            let progressInterval = null;
+createApp({
+    setup() {
+        const currentUser = ref(null);
+        const loginForm = ref({ username: '', password: '' });
+        const isRegistering = ref(false);
+        const loading = ref(false);
+        const errorMsg = ref('');
+        
+        const modalType = ref(null);
+        const modalError = ref('');
+        const modalTitle = ref('');
+        const friendInput = ref('');
+        const profileForm = ref({ username: '', password: '' });
 
-            onMounted(() => {
-                const saved = localStorage.getItem('11s_user');
-                if (saved) { try { currentUser.value = JSON.parse(saved); loadFriends(); setupRealtime(); } catch(e) {} }
-            });
+        const friends = ref([]);
+        const currentChat = ref(null);
+        const messages = ref([]);
+        const newMessage = ref('');
+        const isConnected = ref(false);
+        const isMobile = ref(window.innerWidth <= 768);
+        
+        const showEmoji = ref(false);
+        const emojiTab = ref(0);
+        const previewUrl = ref(null);
+        const ctxMenu = ref({ show: false, x: 0, y: 0, msg: null });
+        
+        const isRecording = ref(false);
+        const voiceBlob = ref(null);
+        const playingId = ref(null);
+        const playProgress = ref(0);
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let currentAudio = null;
+        let progInterval = null;
+        let pollingInterval = null;
 
-            // 登录逻辑
-            const handleLogin = async () => {
-                errorMessage.value = '';
-                if(!loginForm.value.username) return;
-                isLoading.value = true;
-                const cleanName = loginForm.value.username.trim();
-                const password = loginForm.value.password;
-                try {
-                    if (isRegistering.value) {
-                        const { data: exist } = await sb.from('chat_users').select('id').eq('username', cleanName).maybeSingle();
-                        if (exist) throw new Error("用户已存在");
-                        const { data: newUser, error } = await sb.from('chat_users').insert({ username: cleanName, password }).select().single();
-                        if (error) throw error;
-                        loginSuccess(newUser);
-                    } else {
-                        const { data: user, error } = await sb.from('chat_users').select('*').eq('username', cleanName).maybeSingle();
-                        if (!user || user.password !== password) throw new Error("失败");
-                        loginSuccess(user);
+        const currentEmojis = computed(() => EMOJIS[emojiTab.value]);
+        const canRecall = computed(() => {
+            if(!ctxMenu.value.msg) return false;
+            return (new Date() - new Date(ctxMenu.value.msg.created_at)) / 1000 / 60 < 2;
+        });
+
+        onMounted(() => {
+            const saved = localStorage.getItem('11s_user');
+            if(saved) { try { currentUser.value = JSON.parse(saved); initSystem(); } catch(e){} }
+            window.addEventListener('resize', () => isMobile.value = window.innerWidth <= 768);
+        });
+
+        onUnmounted(() => { if(pollingInterval) clearInterval(pollingInterval); stopAudio(); });
+
+        const handleLogin = async () => {
+            errorMsg.value = '';
+            if(!loginForm.value.username) return;
+            loading.value = true;
+            const u = loginForm.value.username.trim(), p = loginForm.value.password;
+            try {
+                if(isRegistering.value) {
+                    const {data:e} = await sb.from('chat_users').select('id').eq('username', u).maybeSingle();
+                    if(e) throw new Error("用户已存在");
+                    const {data:n, error} = await sb.from('chat_users').insert({username:u, password:p}).select().single();
+                    if(error) throw error;
+                    loginOk(n);
+                } else {
+                    const {data:user, error} = await sb.from('chat_users').select('*').eq('username', u).maybeSingle();
+                    if(error || !user || user.password !== p) throw new Error("失败");
+                    loginOk(user);
+                }
+            } catch(e) { errorMsg.value = e.message; }
+            loading.value = false;
+        };
+        const loginOk = (u) => { currentUser.value = u; localStorage.setItem('11s_user', JSON.stringify(u)); loginForm.value={username:'',password:''}; initSystem(); };
+        const logout = () => { localStorage.removeItem('11s_user'); location.reload(); };
+        const initSystem = () => { loadFriends(); setupRealtime(); startPolling(); };
+
+        const loadFriends = async () => {
+            if(!currentUser.value) return;
+            const { data: f1 } = await sb.from('chat_friends').select('friend_id').eq('user_id', currentUser.value.id);
+            const { data: f2 } = await sb.from('chat_friends').select('user_id').eq('friend_id', currentUser.value.id);
+            const ids = [...new Set([...(f1||[]).map(f => f.friend_id), ...(f2||[]).map(f => f.user_id)])];
+            if(ids.length > 0) {
+                const { data: users } = await sb.from('chat_users').select('*').in('id', ids);
+                const list = await Promise.all(users.map(async u => {
+                    const { data: msgs } = await sb.from('chat_messages').select('*').or(`sender_id.eq.${u.id},receiver_id.eq.${u.id}`).or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`).order('created_at', { ascending: false }).limit(1);
+                    const { count } = await sb.from('chat_messages').select('*', { count: 'exact', head: true }).eq('sender_id', u.id).eq('receiver_id', currentUser.value.id).eq('is_read', false);
+                    return { ...u, unread: count || 0, lastMsg: msgs?.[0] };
+                }));
+                friends.value = list.sort((a,b) => new Date(b.lastMsg?.created_at||0) - new Date(a.lastMsg?.created_at||0));
+            }
+        };
+
+        const openChat = async (friend) => {
+            currentChat.value = friend;
+            friend.unread = 0;
+            await loadMessages();
+            markRead();
+            if(isMobile.value) nextTick(() => document.querySelector('.main-chat').classList.add('active'));
+        };
+
+        const closeChat = () => { document.querySelector('.main-chat').classList.remove('active'); setTimeout(() => currentChat.value = null, 300); };
+        
+        const loadMessages = async () => {
+            if(!currentChat.value) return;
+            const { data } = await sb.from('chat_messages').select('*').or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`).order('created_at', { ascending: true });
+            messages.value = (data||[]).filter(m => (m.sender_id===currentUser.value.id && m.receiver_id===currentChat.value.id) || (m.sender_id===currentChat.value.id && m.receiver_id===currentUser.value.id));
+            scrollToBottom();
+        };
+
+        const sendText = async () => {
+            if(!newMessage.value.trim()) return;
+            const content = newMessage.value; newMessage.value = ''; showEmoji.value = false;
+            // Optimistic
+            const tmp = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content, msg_type: 'text', created_at: new Date().toISOString(), is_read: false };
+            messages.value.push(tmp); scrollToBottom();
+            await sb.from('chat_messages').insert({ sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content, msg_type: 'text' });
+        };
+
+        const startPolling = () => {
+            if(pollingInterval) clearInterval(pollingInterval);
+            pollingInterval = setInterval(() => { if(currentChat.value) loadMessages(); loadFriends(); }, 3000);
+        };
+        const markRead = async () => { if(currentChat.value) await sb.from('chat_messages').update({is_read:true}).eq('sender_id',currentChat.value.id).eq('receiver_id',currentUser.value.id).eq('is_read',false); };
+
+        const startRecord = async () => {
+            try {
+                const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(s);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => voiceBlob.value = new Blob(audioChunks, {type:'audio/webm'});
+                mediaRecorder.start(); isRecording.value = true;
+            } catch(e) { alert("麦克风权限拒绝"); }
+        };
+        const stopRecord = () => { if(mediaRecorder?.state !== 'inactive') { mediaRecorder.stop(); isRecording.value = false; } };
+        const playDraftVoice = () => new Audio(URL.createObjectURL(voiceBlob.value)).play();
+        const uploadVoice = async () => {
+            if(!voiceBlob.value) return;
+            const duration = Math.max(1, Math.ceil(voiceBlob.value.size / 5000));
+            const name = `voice_${Date.now()}.webm`;
+            // Optimistic
+            const tmp = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, msg_type: 'voice', file_name: duration+'s', created_at: new Date().toISOString(), is_read: false };
+            messages.value.push(tmp); scrollToBottom(); voiceBlob.value = null;
+            try {
+                await sb.storage.from('chat-uploads').upload(name, voiceBlob.value);
+                const { data } = sb.storage.from('chat-uploads').getPublicUrl(name);
+                await sb.from('chat_messages').insert({ sender_id: currentUser.value.id, receiver_id: currentChat.value.id, msg_type: 'voice', file_url: data.publicUrl, file_name: duration+'s', content: '[语音]' });
+            } catch(e) { console.error(e); }
+        };
+        const toggleVoice = (msg) => {
+            if(playingId.value === msg.id) { stopAudio(); return; }
+            stopAudio();
+            const audio = new Audio(msg.file_url);
+            currentAudio = audio; playingId.value = msg.id;
+            audio.play();
+            progInterval = setInterval(() => { if(audio.duration) playProgress.value = (audio.currentTime/audio.duration)*100; }, 100);
+            audio.onended = stopAudio;
+        };
+        const stopAudio = () => { if(currentAudio) { currentAudio.pause(); currentAudio=null; } clearInterval(progInterval); playingId.value=null; playProgress.value=0; };
+
+        const triggerFile = () => document.getElementById('fileInput').click();
+        const handleFile = async (e) => {
+            const file = e.target.files[0]; if(!file) return;
+            const type = file.type.startsWith('image') ? 'image' : 'file';
+            const name = `${Date.now()}_${file.name}`;
+            try {
+                const { error } = await sb.storage.from('chat-uploads').upload(name, file);
+                if(error) throw error;
+                const { data } = sb.storage.from('chat-uploads').getPublicUrl(name);
+                await sb.from('chat_messages').insert({ sender_id: currentUser.value.id, receiver_id: currentChat.value.id, msg_type: type, file_url: data.publicUrl, file_name: file.name, content: type==='image'?'[图片]':'[文件]' });
+            } catch(e) { alert("上传失败"); }
+        };
+
+        const setupRealtime = () => {
+            sb.removeAllChannels();
+            sb.channel('public:chat_messages').on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, p => {
+                const msg = p.new;
+                if(p.eventType === 'INSERT') {
+                    if(currentChat.value && (msg.sender_id === currentChat.value.id || msg.sender_id === currentUser.value.id)) {
+                        if(!messages.value.some(m => m.id === msg.id)) { messages.value.push(msg); scrollToBottom(); }
+                        if(msg.sender_id === currentChat.value.id) markRead();
                     }
-                } catch (e) { errorMessage.value = e.message; }
-                isLoading.value = false;
-            };
-
-            const loginSuccess = (user) => {
-                currentUser.value = user; localStorage.setItem('11s_user', JSON.stringify(user));
-                loadFriends(); setupRealtime();
-            };
-
-            // 好友 & 消息
-            const loadFriends = async () => {
-                const { data: f1 } = await sb.from('chat_friends').select('friend_id').eq('user_id', currentUser.value.id);
-                const { data: f2 } = await sb.from('chat_friends').select('user_id').eq('friend_id', currentUser.value.id);
-                const ids = [...new Set([...(f1||[]).map(f => f.friend_id), ...(f2||[]).map(f => f.user_id)])];
-                if (ids.length > 0) {
-                    const { data } = await sb.from('chat_users').select('*').in('id', ids);
-                    // Fetch last msg for preview
-                    const friendsWithData = await Promise.all(data.map(async u => {
-                        const { data: last } = await sb.from('chat_messages').select('*').or(`sender_id.eq.${u.id},receiver_id.eq.${u.id}`).or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`).order('created_at', { ascending: false }).limit(1);
-                        const { count } = await sb.from('chat_messages').select('*', { count: 'exact', head: true }).eq('sender_id', u.id).eq('receiver_id', currentUser.value.id).eq('is_read', false);
-                        return { ...u, unread: count || 0, lastMsg: last?.[0] };
-                    }));
-                    friends.value = friendsWithData;
+                    loadFriends();
+                } else if(p.eventType === 'UPDATE') {
+                    const i = messages.value.findIndex(m => m.id === msg.id);
+                    if(i !== -1) messages.value[i] = msg;
                 }
-            };
+            }).subscribe(s => isConnected.value = s === 'SUBSCRIBED');
+        };
 
-            const selectChat = async (friend) => {
-                currentChat.value = friend;
-                friend.unread = 0;
-                await loadMessages();
-                markAsRead();
-                // Mobile: push view
-                if(window.innerWidth <= 768) nextTick(() => document.querySelector('.main-chat').classList.add('active'));
-            };
+        // --- Utils ---
+        const openModal = (t) => { modalType.value = t; modalError.value = ''; friendInput.value=''; if(t==='addFriend') modalTitle.value='添加好友'; else modalTitle.value='修改资料'; };
+        const closeModal = () => modalType.value = null;
+        const addFriend = async () => {
+            loading.value = true;
+            try {
+                const { data:t } = await sb.from('chat_users').select('*').eq('username', friendInput.value.trim()).maybeSingle();
+                if(!t) throw new Error("用户不存在");
+                if(t.id === currentUser.value.id) throw new Error("不能加自己");
+                await sb.from('chat_friends').insert({user_id:currentUser.value.id, friend_id:t.id});
+                alert("添加成功"); closeModal(); loadFriends();
+            } catch(e) { modalError.value = e.message; }
+            loading.value = false;
+        };
+        const updateProfile = async () => {
+            const u = profileForm.value.username.trim(), p = profileForm.value.password;
+            if(!u) return; loading.value = true;
+            try {
+                const up = { username: u }; if(p) up.password = p;
+                await sb.from('chat_users').update(up).eq('id', currentUser.value.id);
+                currentUser.value = {...currentUser.value, ...up};
+                localStorage.setItem('11s_user', JSON.stringify(currentUser.value));
+                alert("修改成功"); closeModal();
+            } catch(e) { modalError.value = "失败"; }
+            loading.value = false;
+        };
+        const addEmoji = (e) => newMessage.value += e;
+        const handleClickOutside = () => { showEmoji.value = false; ctxMenu.value.show = false; };
+        const openCtxMenu = (e, msg) => { if(msg.sender_id===currentUser.value.id && !msg.is_recalled) { ctxMenu.value={show:true, x:e.clientX, y:e.clientY, msg}; } };
+        const handleMobileCtx = (e, msg) => { if(isMobile.value && msg.sender_id===currentUser.value.id) { e.preventDefault(); openCtxMenu(e, msg); } };
+        const recallMsg = async () => { await sb.from('chat_messages').update({is_recalled:true}).eq('id', ctxMenu.value.msg.id); ctxMenu.value.show = false; };
+        const deleteMsg = () => { messages.value = messages.value.filter(m => m.id !== ctxMenu.value.msg.id); ctxMenu.value.show = false; };
+        const scrollToBottom = () => nextTick(() => { const c = document.getElementById('msg-box'); if(c) c.scrollTop = c.scrollHeight + 100; });
+        const formatTime = (iso, short) => {
+            const d = new Date(iso);
+            if(short) { const now = new Date(); if(d.toDateString()===now.toDateString()) return `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`; return `${d.getMonth()+1}/${d.getDate()}`; }
+            return `${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+        };
+        const getPreview = (m) => !m ? '' : (m.is_recalled ? '撤回了一条消息' : (m.msg_type==='text'?m.content:`[${m.msg_type}]`));
 
-            const loadMessages = async () => {
-                if (!currentChat.value) return;
-                const { data } = await sb.from('chat_messages').select('*').or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`).order('created_at', { ascending: true });
-                // Filter locally to ensure strict match
-                messages.value = (data || []).filter(m => (m.sender_id === currentUser.value.id && m.receiver_id === currentChat.value.id) || (m.sender_id === currentChat.value.id && m.receiver_id === currentUser.value.id));
-                scrollToBottom();
-            };
-
-            const sendMessage = async () => {
-                if (!newMessage.value.trim() && !newMessage.value.startsWith('img::')) return;
-                const content = newMessage.value; newMessage.value = ''; showEmoji.value = false;
-                
-                // Optimistic UI (Vue Transition handles animation)
-                const tempMsg = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content, msg_type: 'text', created_at: new Date().toISOString() };
-                messages.value.push(tempMsg); scrollToBottom();
-                
-                await sb.from('chat_messages').insert({ sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content, msg_type: 'text' });
-            };
-
-            // 语音逻辑 - 确认发送模式
-            const startRecord = async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = () => {
-                        voiceReviewBlob.value = new Blob(audioChunks, { type: 'audio/webm' });
-                    };
-                    mediaRecorder.start();
-                    isRecording.value = true;
-                } catch(e) { alert("麦克风权限被拒绝"); }
-            };
-            const stopRecord = () => {
-                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                    mediaRecorder.stop();
-                    isRecording.value = false;
-                }
-            };
-            const cancelVoice = () => { voiceReviewBlob.value = null; };
-            const playReviewVoice = () => { if(voiceReviewBlob.value) new Audio(URL.createObjectURL(voiceReviewBlob.value)).play(); };
-            const confirmSendVoice = async () => {
-                if (!voiceReviewBlob.value) return;
-                const blob = voiceReviewBlob.value;
-                voiceReviewBlob.value = null; // 清空待发送
-                
-                const duration = Math.ceil(blob.size / 5000); 
-                const fileName = `voice_${Date.now()}.webm`;
-                
-                // Optimistic push
-                const tempMsg = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, msg_type: 'voice', file_name: duration+'s', created_at: new Date().toISOString() };
-                messages.value.push(tempMsg); scrollToBottom();
-
-                const { error } = await sb.storage.from('chat-uploads').upload(fileName, blob);
-                if(!error) {
-                    const { data } = sb.storage.from('chat-uploads').getPublicUrl(fileName);
-                    await sb.from('chat_messages').insert({ 
-                        sender_id: currentUser.value.id, 
-                        receiver_id: currentChat.value.id, 
-                        msg_type: 'voice', 
-                        file_url: data.publicUrl, 
-                        file_name: duration + 's', 
-                        content: '[语音]' 
-                    });
-                }
-            };
-            
-            // 语音播放
-            const toggleVoice = (msg) => {
-                if (playingAudioId.value === msg.id) { stopAudio(); return; }
-                stopAudio();
-                const audio = new Audio(msg.file_url);
-                currentAudioObj = audio;
-                playingAudioId.value = msg.id;
-                audio.play();
-                progressInterval = setInterval(() => { if(audio.duration) playProgress.value = (audio.currentTime / audio.duration) * 100; }, 100);
-                audio.onended = stopAudio;
-            };
-            const stopAudio = () => {
-                if (currentAudioObj) { currentAudioObj.pause(); currentAudioObj = null; }
-                if (progressInterval) clearInterval(progressInterval);
-                playingAudioId.value = null; playProgress.value = 0;
-            };
-
-            // 实时监听 (Realtime)
-            const setupRealtime = () => {
-                sb.removeAllChannels();
-                sb.channel('public:chat_messages')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, (payload) => {
-                    const msg = payload.new;
-                    if (payload.eventType === 'INSERT') {
-                        // 如果是当前对话
-                        if (currentChat.value && ((msg.sender_id === currentUser.value.id && msg.receiver_id === currentChat.value.id) || (msg.sender_id === currentChat.value.id && msg.receiver_id === currentUser.value.id))) {
-                            // 去重 (乐观更新ID是时间戳，DB ID是int，如果时间极短可能会重，简单去重靠ID是否存在)
-                            // 更好的方式是看 created_at
-                            if (!messages.value.some(m => m.id === msg.id)) {
-                                messages.value.push(msg);
-                                scrollToBottom();
-                            }
-                            // 如果是对方发的，立即标记已读
-                            if (msg.sender_id !== currentUser.value.id) markAsRead();
-                        } else {
-                            loadFriends(); // 更新列表预览和红点
-                        }
-                    } 
-                    else if (payload.eventType === 'UPDATE') {
-                        // 处理已读回执更新 / 撤回
-                        const idx = messages.value.findIndex(m => m.id === msg.id);
-                        if (idx !== -1) messages.value[idx] = msg;
-                    }
-                })
-                .subscribe(s => isConnected.value = s === 'SUBSCRIBED');
-            };
-
-            // 杂项
-            const markAsRead = async () => { if(currentChat.value) await sb.from('chat_messages').update({ is_read: true }).eq('sender_id', currentChat.value.id).eq('receiver_id', currentUser.value.id).eq('is_read', false); };
-            const triggerFileUpload = () => document.getElementById('fileInput').click();
-            const handleFileUpload = async (e) => {
-                const file = e.target.files[0]; if (!file) return;
-                const type = file.type.startsWith('image/') ? 'image' : 'file';
-                const fileName = `${Date.now()}_${file.name}`;
-                // Optimistic...
-                const { error } = await sb.storage.from('chat-uploads').upload(fileName, file);
-                if(!error) {
-                    const { data } = sb.storage.from('chat-uploads').getPublicUrl(fileName);
-                    await sb.from('chat_messages').insert({ sender_id: currentUser.value.id, receiver_id: currentChat.value.id, msg_type: type, file_url: data.publicUrl, file_name: file.name, content: type==='image'?'[图片]':'[文件]' });
-                }
-            };
-            const addEmoji = (em) => newMessage.value += em;
-            const logout = () => { localStorage.removeItem('11s_user'); location.reload(); };
-            const scrollToBottom = () => nextTick(() => { const c = document.getElementById('msg-container'); if(c) c.scrollTop = c.scrollHeight + 100; });
-            const formatTime = (iso) => { const d = new Date(iso); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; };
-            const backToFriends = () => { document.querySelector('.main-chat').classList.remove('active'); setTimeout(() => currentChat.value = null, 300); };
-            const addFriendPrompt = async () => {
-                const name = prompt("输入好友用户名"); if(!name) return;
-                const { data } = await sb.from('chat_users').select('*').eq('username', name.trim()).maybeSingle();
-                if(data) { await sb.from('chat_friends').insert({user_id:currentUser.value.id, friend_id:data.id}); alert("添加成功"); loadFriends(); }
-            };
-            const showContextMenu = (e, msg) => { if(msg.sender_id === currentUser.value.id && !msg.is_recalled) contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, msg }; };
-            const handleMsgClick = (e, msg) => { if (window.innerWidth <= 768 && msg.sender_id === currentUser.value.id) { e.preventDefault(); showContextMenu(e, msg); } };
-            const handleClickOutside = () => { showEmoji.value = false; contextMenu.value.visible = false; };
-            const recallMessage = async () => { await sb.from('chat_messages').update({ is_recalled: true }).eq('id', contextMenu.value.msg.id); contextMenu.value.visible = false; };
-            const deleteMessage = () => { messages.value = messages.value.filter(m => m.id !== contextMenu.value.msg.id); contextMenu.value.visible = false; };
-            const canRecall = computed(() => contextMenu.value.msg && ((new Date() - new Date(contextMenu.value.msg.created_at)) / 1000 / 60) < 2);
-            const getPreviewText = (msg) => !msg ? '' : (msg.is_recalled ? '撤回了一条消息' : (msg.msg_type==='text' ? msg.content : `[${msg.msg_type}]`));
-
-            return {
-                currentUser, loginForm, isRegistering, isLoading, errorMessage, friends, currentChat, messages, newMessage, isConnected, showEmoji, EMOJIS,
-                contextMenu, canRecall, isRecording, playingAudioId, playProgress, voiceReviewBlob,
-                handleLogin, logout, addFriendPrompt, selectChat, sendMessage, formatTime, addEmoji, triggerFileUpload, handleFileUpload,
-                startRecord, stopRecord, confirmSendVoice, cancelVoice, playReviewVoice, toggleVoice,
-                showContextMenu, recallMessage, deleteMessage, handleClickOutside, backToFriends, handleMsgClick, markAsRead, getPreviewText
-            };
-        }
-    }).mount('#app');
+        return {
+            currentUser, loginForm, isRegistering, loading, errorMsg, friends, currentChat, messages, newMessage, isConnected,
+            isMobile, modalType, modalError, modalTitle, friendInput, profileForm, previewUrl, showEmoji, emojiTab, currentEmojis,
+            isRecording, voiceBlob, playingId, playProgress, ctxMenu, canRecall,
+            handleLogin, logout, initProfile: ()=>openModal('editProfile'), openModal, closeModal, addFriend, updateProfile,
+            openChat, closeChat, sendText, triggerFile, handleFile, startRecord, stopRecord, playDraftVoice, uploadVoice, toggleVoice,
+            openCtxMenu, handleMobileCtx, recallMsg, deleteMsg, closePopups: handleClickOutside, previewImg: (u)=>previewUrl.value=u, addEmoji,
+            formatTime, getPreview, markRead
+        };
+    }
+}).mount('#app');
 </script>
 </body>
 </html>
