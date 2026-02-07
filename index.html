@@ -16,6 +16,7 @@
             --text-main: #4a3b2a; --text-light: #8b7e74; --border: #dcd3c1;
             --msg-sent: #eaddcf; --msg-received: #ffffff;  
             --btn-primary: #5b4636; --btn-hover: #423226; --radius: 12px;
+            --danger: #ef4444;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg-paper); color: var(--text-main); font-family: "Georgia", "Songti SC", serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
@@ -24,100 +25,111 @@
         /* 侧边栏 */
         .sidebar { width: 280px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 24px; z-index: 10; }
         .brand { font-size: 22px; font-weight: bold; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
-        .conn-status { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; margin-left: auto; }
+        .conn-status { width: 10px; height: 10px; border-radius: 50%; background: #ccc; display: inline-block; margin-left: auto; transition: 0.3s; }
         .conn-status.online { background: #34c759; box-shadow: 0 0 5px #34c759; }
         
         .friend-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
-        .friend-item { padding: 10px 12px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; }
+        .friend-item { padding: 12px; border-radius: var(--radius); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px; border: 1px solid transparent; position: relative; }
         .friend-item:hover { background-color: rgba(255,255,255,0.5); }
         .friend-item.active { background-color: #fff; border-color: var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .avatar { width: 36px; height: 36px; background: var(--bg-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; text-transform: uppercase; }
+        .avatar { width: 40px; height: 40px; background: var(--bg-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; text-transform: uppercase; font-size: 16px; flex-shrink: 0; }
+        .friend-info { flex: 1; min-width: 0; }
+        .friend-name { font-weight: bold; font-size: 15px; margin-bottom: 2px; }
+        .friend-preview { font-size: 12px; color: var(--text-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* 红点 */
+        .unread-badge { background: var(--danger); color: white; font-size: 10px; min-width: 18px; height: 18px; border-radius: 9px; display: flex; align-items: center; justify-content: center; padding: 0 5px; font-weight: bold; box-shadow: 0 2px 4px rgba(239,68,68,0.3); }
+
         .user-info { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; gap: 12px; }
 
         /* 聊天区 */
-        .main-chat { flex: 1; display: flex; flex-direction: column; background-image: radial-gradient(#dccdb3 1px, transparent 1px); background-size: 24px 24px; }
-        .chat-header { padding: 18px 30px; border-bottom: 1px solid var(--border); font-size: 18px; font-weight: bold; background: rgba(253, 246, 227, 0.85); backdrop-filter: blur(10px); }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 16px; }
+        .main-chat { flex: 1; display: flex; flex-direction: column; background-image: radial-gradient(#dccdb3 1px, transparent 1px); background-size: 24px 24px; position: relative; }
+        .chat-header { padding: 18px 30px; border-bottom: 1px solid var(--border); font-size: 18px; font-weight: bold; background: rgba(253, 246, 227, 0.95); backdrop-filter: blur(10px); display: flex; align-items: center; gap: 10px; z-index: 20; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 30px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
         
-        .message-bubble { max-width: 70%; padding: 12px 18px; border-radius: 16px; font-size: 15px; line-height: 1.5; box-shadow: 2px 2px 6px rgba(0,0,0,0.03); word-wrap: break-word; position: relative; }
-        .message-bubble.sent { align-self: flex-end; background-color: var(--msg-sent); border-bottom-right-radius: 2px; }
-        .message-bubble.received { align-self: flex-start; background-color: var(--msg-received); border-bottom-left-radius: 2px; }
+        /* 消息气泡 & 动画 */
+        .message-row { display: flex; flex-direction: column; max-width: 70%; position: relative; animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .message-row.sent { align-self: flex-end; align-items: flex-end; }
+        .message-row.received { align-self: flex-start; align-items: flex-start; }
         
-        /* 图片消息样式 */
-        .msg-img { max-width: 100%; border-radius: 8px; cursor: zoom-in; display: block; margin-bottom: 4px; }
-        .msg-time { font-size: 10px; opacity: 0.5; margin-top: 4px; text-align: right; display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 输入区增强 */
-        .chat-input-area { padding: 15px 30px; border-top: 1px solid var(--border); background: rgba(253, 246, 227, 0.9); display: flex; gap: 10px; align-items: flex-end; position: relative; }
-        .toolbar-btn { background: transparent; border: none; color: var(--text-light); font-size: 20px; cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.2s; }
-        .toolbar-btn:hover { background: rgba(0,0,0,0.05); color: var(--text-main); }
+        .message-bubble { padding: 12px 16px; border-radius: 16px; font-size: 15px; line-height: 1.5; box-shadow: 2px 2px 6px rgba(0,0,0,0.03); word-wrap: break-word; position: relative; cursor: context-menu; transition: background 0.2s; }
+        .message-bubble.sent { background-color: var(--msg-sent); border-bottom-right-radius: 2px; }
+        .message-bubble.received { background-color: var(--msg-received); border-bottom-left-radius: 2px; }
+        .message-bubble.recalled { background: rgba(0,0,0,0.05); color: #999; font-style: italic; font-size: 13px; padding: 8px 12px; box-shadow: none; cursor: default; }
+
+        /* 内容类型样式 */
+        .msg-img { max-width: 200px; max-height: 200px; border-radius: 8px; cursor: zoom-in; display: block; }
+        .msg-file { display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 8px; text-decoration: none; color: var(--text-main); font-size: 14px; }
+        .msg-file i { font-size: 20px; }
+        .msg-voice { display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 80px; }
+        
+        .msg-meta { font-size: 10px; opacity: 0.5; margin-top: 4px; display: flex; gap: 6px; align-items: center; }
+        .read-status { font-weight: bold; color: var(--btn-primary); }
+
+        /* 右键菜单 */
+        .context-menu { position: fixed; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); padding: 5px 0; z-index: 1000; min-width: 100px; }
+        .menu-item { padding: 8px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 8px; color: var(--text-main); }
+        .menu-item:hover { background: var(--bg-paper); }
+        .menu-item.danger { color: var(--danger); }
+
+        /* 输入区 */
+        .chat-input-area { padding: 15px 20px; border-top: 1px solid var(--border); background: rgba(253, 246, 227, 0.95); display: flex; gap: 10px; align-items: flex-end; }
+        .toolbar-btn { background: transparent; border: none; color: var(--text-light); font-size: 20px; cursor: pointer; padding: 8px; border-radius: 50%; transition: 0.2s; flex-shrink: 0; }
+        .toolbar-btn:hover, .toolbar-btn.active { background: rgba(0,0,0,0.05); color: var(--text-main); }
+        .toolbar-btn.recording { color: var(--danger); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         
         .input-box { flex: 1; border: 1px solid var(--border); background: #fff; padding: 12px 16px; border-radius: 20px; font-size: 15px; outline: none; resize: none; height: 46px; line-height: 20px; max-height: 120px; }
         .input-box:focus { border-color: var(--text-light); box-shadow: 0 0 0 3px rgba(91, 70, 54, 0.05); }
-        
-        .send-btn { background: var(--btn-primary); color: #fff; border: none; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .send-btn { background: var(--btn-primary); color: #fff; border: none; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; transition: 0.2s; }
+        .send-btn:hover { transform: scale(1.05); }
 
-        /* 表情面板 */
-        .emoji-picker { 
-            position: absolute; bottom: 80px; left: 30px; background: #fff; 
-            border: 1px solid var(--border); border-radius: 12px; padding: 10px; 
-            width: 280px; height: 200px; overflow-y: auto; display: grid; 
-            grid-template-columns: repeat(6, 1fr); gap: 5px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); 
-            z-index: 50; 
-        }
+        /* 附件/表情 面板 */
+        .panel-popover { position: absolute; bottom: 80px; left: 20px; background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); z-index: 50; }
+        .emoji-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; width: 280px; height: 200px; overflow-y: auto; }
         .emoji-item { font-size: 24px; cursor: pointer; text-align: center; padding: 5px; border-radius: 4px; }
         .emoji-item:hover { background: #f0f0f0; }
 
         /* 大图预览 */
-        .img-preview-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 2000; display: flex; 
-            justify-content: center; align-items: center; cursor: zoom-out;
-        }
+        .img-preview-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: flex; justify-content: center; align-items: center; cursor: zoom-out; }
         .img-preview { max-width: 90%; max-height: 90%; border-radius: 8px; box-shadow: 0 0 30px rgba(0,0,0,0.5); }
 
-        /* 弹窗通用 */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 59, 42, 0.3); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        /* 登录弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(74, 59, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 100; }
         .modal-card { background: #fffbf0; padding: 40px; width: 360px; border-radius: 16px; box-shadow: 0 20px 40px rgba(91, 70, 54, 0.2); text-align: center; border: 1px solid var(--border); }
         .modal-input { width: 100%; padding: 12px 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 15px; outline: none; background: #fff; }
         .modal-btn { width: 100%; margin-top: 10px; padding: 12px; background: var(--btn-primary); color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: bold; }
+        .modal-btn:disabled { opacity: 0.7; cursor: not-allowed; }
         .error-msg { color: #dc2626; font-size: 13px; margin-top: 15px; }
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; opacity: 0.4; }
     </style>
 </head>
 <body>
 
-<div id="app">
+<div id="app" @click="closeMenus">
     <!-- 大图预览 -->
     <div class="img-preview-overlay" v-if="previewImg" @click="previewImg = null">
         <img :src="previewImg" class="img-preview">
+    </div>
+
+    <!-- 右键菜单 -->
+    <div class="context-menu" v-if="contextMenu.visible" :style="{ top: contextMenu.y + 'px', left: contextMenu.x + 'px' }" @click.stop>
+        <div class="menu-item" v-if="canRecall" @click="recallMessage"><i class="bi bi-arrow-counterclockwise"></i> 撤回</div>
+        <div class="menu-item danger" @click="deleteMessage"><i class="bi bi-trash"></i> 删除(本地)</div>
     </div>
 
     <!-- 登录/注册 -->
     <div class="modal-overlay" v-if="!currentUser">
         <div class="modal-card">
             <h2 style="margin-bottom: 10px; color: var(--text-main);">11s Chat</h2>
-            <p style="margin-bottom: 20px; font-size: 14px; opacity: 0.7;">
-                {{ isRegistering ? '创建一个新账号' : '登录你的账号' }}
-            </p>
+            <p style="margin-bottom: 20px; font-size: 14px; opacity: 0.7;">{{ isRegistering ? '创建新账号' : '登录你的账号' }}</p>
             <input type="text" class="modal-input" v-model="loginForm.username" placeholder="用户名" @keyup.enter="handleLogin">
             <input type="password" class="modal-input" v-model="loginForm.password" placeholder="密码" @keyup.enter="handleLogin">
             <button class="modal-btn" @click="handleLogin" :disabled="isLoading">{{ isLoading ? '处理中...' : (isRegistering ? '注册' : '登录') }}</button>
             <div class="error-msg">{{ errorMessage }}</div>
-            <div style="margin-top: 15px; font-size: 12px; color: #888; cursor: pointer;" @click="toggleMode">
-                {{ isRegistering ? '已有账号？去登录' : '没有账号？去注册' }}
-            </div>
-        </div>
-    </div>
-
-    <!-- 添加好友 -->
-    <div class="modal-overlay" v-if="showAddFriendModal">
-        <div class="modal-card">
-            <h3 style="margin-bottom: 15px;">添加好友</h3>
-            <input type="text" class="modal-input" v-model="friendNameInput" placeholder="输入对方用户名..." @keyup.enter="addFriend">
-            <button class="modal-btn" @click="addFriend" :disabled="isLoading">{{ isLoading ? '查找中...' : '添加' }}</button>
-            <div class="error-msg">{{ friendError }}</div>
-            <button class="modal-btn" style="background:transparent; color:#666; margin-top:0;" @click="showAddFriendModal = false">取消</button>
+            <div style="margin-top: 15px; font-size: 12px; color: #888; cursor: pointer;" @click="toggleMode">{{ isRegistering ? '已有账号？去登录' : '没有账号？去注册' }}</div>
         </div>
     </div>
 
@@ -126,57 +138,92 @@
         <div class="sidebar">
             <div class="brand">
                 <span><i class="bi bi-feather"></i> 11s Chat</span>
-                <span class="conn-status" :class="{ online: isConnected }" title="连接状态"></span>
+                <span class="conn-status" :class="{ online: isConnected }" :title="isConnected?'Online':'Connecting...'"></span>
             </div>
-            <div class="section-title">联系人 <i class="bi bi-plus-circle-fill add-btn" @click="showAddFriendModal = true; friendError=''"></i></div>
+            <div class="section-title">联系人 <i class="bi bi-plus-circle-fill add-btn" @click="addFriendPrompt"></i></div>
+            
             <div class="friend-list">
                 <div v-for="friend in friends" :key="friend.id" class="friend-item" :class="{ active: currentChat?.id === friend.id }" @click="selectChat(friend)">
                     <div class="avatar">{{ friend.username.substring(0,1) }}</div>
-                    <div>{{ friend.username }}</div>
+                    <div class="friend-info">
+                        <div class="friend-name">{{ friend.username }}</div>
+                        <div class="friend-preview" v-if="friend.lastMsg">
+                            {{ friend.lastMsg.is_recalled ? '撤回了一条消息' : (friend.lastMsg.msg_type === 'text' ? friend.lastMsg.content : '['+friend.lastMsg.msg_type+']') }}
+                        </div>
+                    </div>
+                    <div class="unread-badge" v-if="friend.unread > 0">{{ friend.unread }}</div>
                 </div>
-                <div v-if="friends.length === 0" style="text-align:center; margin-top:30px; font-size:13px; color:#999;">暂无好友</div>
             </div>
+            
             <div class="user-info">
                 <div class="avatar" style="background:var(--text-main)">{{ currentUser.username.substring(0,1) }}</div>
-                <div style="flex:1;">
-                    <div style="font-weight:bold;">{{ currentUser.username }}</div>
-                    <div style="font-size:11px; cursor:pointer; opacity:0.6;" @click="logout">退出</div>
-                </div>
+                <div style="flex:1; font-weight:bold;">{{ currentUser.username }}</div>
+                <div style="font-size:11px; cursor:pointer; opacity:0.6;" @click="logout">退出</div>
             </div>
         </div>
 
         <div class="main-chat">
             <template v-if="currentChat">
-                <div class="chat-header">{{ currentChat.username }}</div>
+                <div class="chat-header">
+                    <span>{{ currentChat.username }}</span>
+                </div>
+                
                 <div class="chat-messages" id="msg-container">
-                    <div v-for="msg in messages" :key="msg.id" class="message-bubble" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
-                        <!-- 图片消息 -->
-                        <div v-if="msg.content.startsWith('img::')">
-                            <img :src="msg.content.substring(5)" class="msg-img" @click="previewImg = msg.content.substring(5)">
+                    <div v-for="msg in messages" :key="msg.id" class="message-row" :class="msg.sender_id === currentUser.id ? 'sent' : 'received'">
+                        <div class="message-bubble" 
+                             :class="[msg.sender_id === currentUser.id ? 'sent' : 'received', { recalled: msg.is_recalled }]"
+                             @contextmenu.prevent="showContextMenu($event, msg)">
+                            
+                            <template v-if="msg.is_recalled">
+                                <i class="bi bi-arrow-counterclockwise"></i> 消息已撤回
+                            </template>
+                            
+                            <template v-else>
+                                <!-- 文本 -->
+                                <div v-if="msg.msg_type === 'text'">{{ msg.content }}</div>
+                                <!-- 图片 -->
+                                <img v-else-if="msg.msg_type === 'image'" :src="msg.file_url" class="msg-img" @click="previewImg = msg.file_url">
+                                <!-- 文件 -->
+                                <a v-else-if="msg.msg_type === 'file'" :href="msg.file_url" target="_blank" class="msg-file">
+                                    <i class="bi bi-file-earmark-text"></i> {{ msg.file_name || '附件' }}
+                                </a>
+                                <!-- 语音 -->
+                                <div v-else-if="msg.msg_type === 'voice'" class="msg-voice" @click="playVoice(msg.file_url)">
+                                    <i class="bi bi-mic-fill"></i> 语音消息
+                                    <audio :src="msg.file_url" style="display:none"></audio>
+                                </div>
+                            </template>
                         </div>
-                        <!-- 文本消息 -->
-                        <div v-else>{{ msg.content }}</div>
-                        <span class="msg-time">{{ formatTime(msg.created_at) }}</span>
+                        <div class="msg-meta" v-if="!msg.is_recalled">
+                            <span v-if="msg.sender_id === currentUser.id && msg.is_read" class="read-status">已读</span>
+                            <span>{{ formatTime(msg.created_at) }}</span>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- 输入栏 -->
                 <div class="chat-input-area">
-                    <!-- 图片上传 -->
-                    <button class="toolbar-btn" @click="triggerFileUpload" title="发送图片">
+                    <!-- 附件 -->
+                    <button class="toolbar-btn" @click="triggerFileUpload" title="发送文件/图片">
                         <i class="bi bi-paperclip"></i>
                     </button>
-                    <input type="file" id="fileInput" accept="image/*" style="display:none" @change="handleFileUpload">
+                    <input type="file" id="fileInput" style="display:none" @change="handleFileUpload">
+
+                    <!-- 语音 -->
+                    <button class="toolbar-btn" :class="{ recording: isRecording, active: isRecording }" @mousedown="startRecord" @mouseup="stopRecord" @mouseleave="stopRecord" title="按住说话">
+                        <i class="bi bi-mic"></i>
+                    </button>
 
                     <!-- 表情 -->
-                    <button class="toolbar-btn" @click="showEmoji = !showEmoji" title="表情">
+                    <button class="toolbar-btn" @click.stop="showEmoji = !showEmoji" title="表情">
                         <i class="bi bi-emoji-smile"></i>
                     </button>
-                    <div class="emoji-picker" v-if="showEmoji">
-                        <div class="emoji-item" v-for="em in emojis" @click="addEmoji(em)">{{ em }}</div>
+                    <div class="panel-popover" v-if="showEmoji" @click.stop>
+                        <div class="emoji-grid">
+                            <div class="emoji-item" v-for="em in emojis" @click="addEmoji(em)">{{ em }}</div>
+                        </div>
                     </div>
 
-                    <input type="text" class="input-box" v-model="newMessage" placeholder="写信..." @keyup.enter="sendMessage">
+                    <input type="text" class="input-box" v-model="newMessage" placeholder="写信..." @keyup.enter="sendMessage" @focus="markAsRead">
                     <button class="send-btn" @click="sendMessage"><i class="bi bi-send-fill"></i></button>
                 </div>
             </template>
@@ -195,115 +242,79 @@
     const SUPABASE_KEY = 'sb_publishable_UlNMDLt4OaYIX-_lCezGwA_8jIQLhFO'; 
     
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const { createApp, ref, onMounted, nextTick, onUnmounted } = Vue;
-
+    const { createApp, ref, onMounted, nextTick, onUnmounted, computed } = Vue;
     const EMOJIS = ['😀','😂','🥰','😎','🤔','😡','😭','👍','🤝','🎉','🔥','❤️','📜','🖊️','☕','🍺','🍕','🐱','🐶','🐸','👻','👽','🤖','💩'];
 
     createApp({
         setup() {
+            // State
             const currentUser = ref(null);
             const loginForm = ref({ username: '', password: '' });
             const isRegistering = ref(false);
             const isLoading = ref(false);
             const errorMessage = ref('');
-            const friendError = ref('');
             const friends = ref([]);
             const currentChat = ref(null);
             const messages = ref([]);
             const newMessage = ref('');
-            const showAddFriendModal = ref(false);
-            const friendNameInput = ref('');
             const isConnected = ref(false);
             const showEmoji = ref(false);
             const previewImg = ref(null);
-            const emojis = EMOJIS;
+            const contextMenu = ref({ visible: false, x: 0, y: 0, msg: null });
+            const isRecording = ref(false);
+            let mediaRecorder = null;
+            let audioChunks = [];
             let pollingInterval = null;
+
+            // Notification
+            if (Notification.permission === 'default') Notification.requestPermission();
 
             onMounted(() => {
                 const saved = localStorage.getItem('11s_user');
-                if (saved) {
-                    try { currentUser.value = JSON.parse(saved); loadFriends(); startPolling(); setupRealtime(); } catch(e) {}
-                }
+                if (saved) { currentUser.value = JSON.parse(saved); loadFriends(); startPolling(); setupRealtime(); }
             });
 
             onUnmounted(() => {
                 if (pollingInterval) clearInterval(pollingInterval);
             });
 
-            const handleLogin = async () => {
-                errorMessage.value = ''; 
-                if(isLoading.value) return;
-                const { username, password } = loginForm.value;
-                if (!username || !password) { errorMessage.value = "请输入用户名和密码"; return; }
-                
-                isLoading.value = true;
-                try {
-                    if (isRegistering.value) {
-                        const { data: exist } = await sb.from('chat_users').select('id').eq('username', username).maybeSingle();
-                        if (exist) throw new Error("用户名已存在");
-                        const { data: newUser, error } = await sb.from('chat_users').insert({ username, password }).select().single();
-                        if (error) throw error;
-                        loginSuccess(newUser);
-                    } else {
-                        const { data: user, error } = await sb.from('chat_users').select('*').eq('username', username).maybeSingle();
-                        if (error) throw error;
-                        if (!user) throw new Error("用户不存在");
-                        if (user.password !== password) throw new Error("密码错误");
-                        loginSuccess(user);
-                    }
-                } catch (e) {
-                    errorMessage.value = e.message || "操作失败";
-                } finally {
-                    isLoading.value = false;
-                }
-            };
-
-            const loginSuccess = (user) => {
-                currentUser.value = user;
-                localStorage.setItem('11s_user', JSON.stringify(user));
-                loadFriends();
-                startPolling();
-                setupRealtime();
-                loginForm.value = { username: '', password: '' };
-            };
-
-            const logout = () => {
-                localStorage.removeItem('11s_user');
-                currentUser.value = null;
-                currentChat.value = null;
-                if (pollingInterval) clearInterval(pollingInterval);
-                sb.removeAllChannels();
-            };
-
-            const toggleMode = () => { isRegistering.value = !isRegistering.value; errorMessage.value = ''; };
+            // --- 核心逻辑 ---
 
             const loadFriends = async () => {
+                // 1. 获取好友列表
                 const { data: f1 } = await sb.from('chat_friends').select('friend_id').eq('user_id', currentUser.value.id);
                 const { data: f2 } = await sb.from('chat_friends').select('user_id').eq('friend_id', currentUser.value.id);
                 const ids = [...new Set([...(f1||[]).map(f => f.friend_id), ...(f2||[]).map(f => f.user_id)])];
+
                 if (ids.length > 0) {
-                    const { data } = await sb.from('chat_users').select('*').in('id', ids);
-                    friends.value = data || [];
+                    const { data: users } = await sb.from('chat_users').select('*').in('id', ids);
+                    // 初始化未读状态
+                    friends.value = users.map(u => ({ ...u, unread: 0, lastMsg: null }));
+                    fetchUnreadCounts();
                 }
             };
 
-            const addFriend = async () => {
-                if (!friendNameInput.value) return;
-                isLoading.value = true;
-                friendError.value = '';
-                try {
-                    const { data: target } = await sb.from('chat_users').select('*').eq('username', friendNameInput.value).maybeSingle();
-                    if (!target) throw new Error("找不到该用户");
-                    if (target.id === currentUser.value.id) throw new Error("不能添加自己");
-                    const { error } = await sb.from('chat_friends').insert({ user_id: currentUser.value.id, friend_id: target.id });
-                    if (error) throw new Error("添加失败（可能已经是好友了）");
-                    showAddFriendModal.value = false;
-                    friendNameInput.value = '';
-                    loadFriends();
-                } catch (e) { friendError.value = e.message; } finally { isLoading.value = false; }
+            const fetchUnreadCounts = async () => {
+                // 获取每个好友的最后一条消息和未读数 (简化版：拉取所有未读)
+                const { data } = await sb.from('chat_messages')
+                    .select('sender_id, content, msg_type, is_recalled, is_read')
+                    .eq('receiver_id', currentUser.value.id)
+                    .eq('is_read', false);
+                
+                if(data) {
+                    data.forEach(msg => {
+                        const friend = friends.value.find(f => f.id === msg.sender_id);
+                        if(friend) friend.unread++;
+                    });
+                }
             };
 
-            const selectChat = (friend) => { currentChat.value = friend; loadMessages(); };
+            const selectChat = async (friend) => {
+                currentChat.value = friend;
+                friend.unread = 0; // 清除红点
+                await loadMessages();
+                markAsRead(); // 标记已读
+            };
 
             const loadMessages = async () => {
                 if (!currentChat.value) return;
@@ -311,6 +322,7 @@
                     .select('*')
                     .or(`sender_id.eq.${currentUser.value.id},receiver_id.eq.${currentUser.value.id}`)
                     .order('created_at', { ascending: true });
+                
                 messages.value = (data || []).filter(m => 
                     (m.sender_id === currentUser.value.id && m.receiver_id === currentChat.value.id) ||
                     (m.sender_id === currentChat.value.id && m.receiver_id === currentUser.value.id)
@@ -320,89 +332,223 @@
 
             const startPolling = () => {
                 if (pollingInterval) clearInterval(pollingInterval);
-                pollingInterval = setInterval(() => { if (currentChat.value) loadMessages(); }, 3000);
+                pollingInterval = setInterval(() => { 
+                    if (currentChat.value) loadMessages(); 
+                    fetchUnreadCounts(); // 更新红点
+                }, 3000);
             };
 
-            // 发送文本
             const sendMessage = async () => {
-                if (!newMessage.value.trim() || !currentChat.value) return;
+                if (!newMessage.value.trim() && !newMessage.value.startsWith('img::')) return;
                 const content = newMessage.value;
                 newMessage.value = '';
                 showEmoji.value = false;
                 
                 // 乐观更新
-                const tempMsg = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content: content, created_at: new Date().toISOString() };
+                const tempMsg = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content: content, msg_type: 'text', created_at: new Date().toISOString() };
                 messages.value.push(tempMsg);
                 scrollToBottom();
 
-                await sb.from('chat_messages').insert({ sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content: content });
-                loadMessages();
+                await sb.from('chat_messages').insert({
+                    sender_id: currentUser.value.id,
+                    receiver_id: currentChat.value.id,
+                    content: content,
+                    msg_type: 'text'
+                });
             };
 
-            // 图片上传
+            const markAsRead = async () => {
+                if(!currentChat.value) return;
+                // 更新数据库
+                await sb.from('chat_messages')
+                    .update({ is_read: true })
+                    .eq('sender_id', currentChat.value.id)
+                    .eq('receiver_id', currentUser.value.id)
+                    .eq('is_read', false);
+            };
+
+            // --- 实时系统 ---
+            const setupRealtime = () => {
+                sb.removeAllChannels();
+                sb.channel('public:chat_messages')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages' }, payload => {
+                    const msg = payload.new || payload.old; // UPDATE/DELETE 用 new
+                    const event = payload.eventType;
+
+                    // 1. 处理新消息 (INSERT)
+                    if (event === 'INSERT') {
+                        // 如果是当前聊天
+                        if (currentChat.value && 
+                            ((msg.sender_id === currentUser.value.id && msg.receiver_id === currentChat.value.id) ||
+                             (msg.sender_id === currentChat.value.id && msg.receiver_id === currentUser.value.id))) {
+                            
+                            // 去重并添加
+                            if (!messages.value.some(m => m.id === msg.id)) {
+                                messages.value.push(msg);
+                                scrollToBottom();
+                                if (msg.sender_id !== currentUser.value.id) markAsRead(); // 立即已读
+                            }
+                        } 
+                        // 如果不是当前聊天 -> 显示红点 & 通知
+                        else if (msg.receiver_id === currentUser.value.id) {
+                            const sender = friends.value.find(f => f.id === msg.sender_id);
+                            if (sender) {
+                                sender.unread++;
+                                sendBrowserNotify(sender.username, msg.content);
+                            }
+                        }
+                    } 
+                    // 2. 处理更新 (UPDATE: 已读/撤回)
+                    else if (event === 'UPDATE') {
+                        // 更新消息列表里的状态
+                        const idx = messages.value.findIndex(m => m.id === msg.id);
+                        if (idx !== -1) {
+                            messages.value[idx] = msg; // 替换为最新状态
+                        }
+                    }
+                })
+                .subscribe(status => isConnected.value = status === 'SUBSCRIBED');
+            };
+
+            // --- 附件与语音 ---
             const triggerFileUpload = () => document.getElementById('fileInput').click();
             const handleFileUpload = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
                 
-                // 乐观更新（先显示"上传中..."）
-                const tempMsg = { id: Date.now(), sender_id: currentUser.value.id, receiver_id: currentChat.value.id, content: "正在上传图片...", created_at: new Date().toISOString() };
-                messages.value.push(tempMsg);
-                scrollToBottom();
-
+                const type = file.type.startsWith('image/') ? 'image' : 'file';
+                const fileName = `${Date.now()}_${file.name}`;
+                
                 try {
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${Date.now()}.${fileExt}`;
-                    const { error: uploadError } = await sb.storage.from('chat-uploads').upload(fileName, file);
-                    if (uploadError) throw uploadError;
-
+                    const { error } = await sb.storage.from('chat-uploads').upload(fileName, file);
+                    if (error) throw error;
                     const { data } = sb.storage.from('chat-uploads').getPublicUrl(fileName);
-                    const publicUrl = data.publicUrl;
 
-                    // 发送带前缀的图片消息
                     await sb.from('chat_messages').insert({
                         sender_id: currentUser.value.id,
                         receiver_id: currentChat.value.id,
-                        content: `img::${publicUrl}`
+                        msg_type: type,
+                        file_url: data.publicUrl,
+                        file_name: file.name,
+                        content: type === 'image' ? '[图片]' : '[文件]'
                     });
-                    
-                    loadMessages(); // 刷新显示真实图片
-                } catch (error) {
-                    alert("图片上传失败: " + error.message);
-                    messages.value.pop(); // 移除临时消息
+                } catch(err) { alert("上传失败: " + err.message); }
+            };
+
+            const startRecord = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = sendVoice;
+                    mediaRecorder.start();
+                    isRecording.value = true;
+                } catch(e) { alert("无法访问麦克风"); }
+            };
+            const stopRecord = () => {
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                    isRecording.value = false;
                 }
             };
+            const sendVoice = async () => {
+                if(audioChunks.length === 0) return;
+                const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                const fileName = `voice_${Date.now()}.webm`;
+                
+                const { error } = await sb.storage.from('chat-uploads').upload(fileName, blob);
+                if (!error) {
+                    const { data } = sb.storage.from('chat-uploads').getPublicUrl(fileName);
+                    await sb.from('chat_messages').insert({
+                        sender_id: currentUser.value.id,
+                        receiver_id: currentChat.value.id,
+                        msg_type: 'voice',
+                        file_url: data.publicUrl,
+                        content: '[语音]'
+                    });
+                }
+            };
+            const playVoice = (url) => { new Audio(url).play(); };
 
-            const addEmoji = (em) => { newMessage.value += em; };
-
-            const setupRealtime = () => {
-                sb.removeAllChannels();
-                const channel = sb.channel('public:chat_messages');
-                channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
-                    const msg = payload.new;
-                    if (currentChat.value && 
-                        ((msg.sender_id === currentUser.value.id && msg.receiver_id === currentChat.value.id) ||
-                         (msg.sender_id === currentChat.value.id && msg.receiver_id === currentUser.value.id))) {
-                        // 简单去重：如果ID不一样才加
-                        if (!messages.value.some(m => m.id === msg.id)) {
-                            messages.value.push(msg);
-                            scrollToBottom();
-                        }
-                    }
-                })
-                .subscribe((status) => {
-                    isConnected.value = status === 'SUBSCRIBED';
-                });
+            // --- 撤回逻辑 ---
+            const showContextMenu = (e, msg) => {
+                if (msg.sender_id === currentUser.value.id && !msg.is_recalled) {
+                    contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, msg: msg };
+                }
+            };
+            const closeMenus = () => { contextMenu.value.visible = false; showEmoji.value = false; };
+            const canRecall = computed(() => {
+                // 限制2分钟内撤回
+                if (!contextMenu.value.msg) return false;
+                const diff = (new Date() - new Date(contextMenu.value.msg.created_at)) / 1000 / 60;
+                return diff < 2; 
+            });
+            const recallMessage = async () => {
+                const msg = contextMenu.value.msg;
+                await sb.from('chat_messages').update({ is_recalled: true }).eq('id', msg.id);
+                closeMenus();
+            };
+            const deleteMessage = () => {
+                // 仅本地删除
+                messages.value = messages.value.filter(m => m.id !== contextMenu.value.msg.id);
+                closeMenus();
             };
 
-            const scrollToBottom = () => { nextTick(() => { const c = document.getElementById('msg-container'); if(c) c.scrollTop = c.scrollHeight; }); };
+            // --- 杂项 ---
+            const sendBrowserNotify = (user, text) => {
+                if (Notification.permission === "granted" && document.hidden) {
+                    new Notification(`来自 ${user} 的新消息`, { body: text, icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📜</text></svg>' });
+                }
+            };
+            
+            const handleLogin = async () => {
+                isLoading.value = true; errorMessage.value = '';
+                const { username, password } = loginForm.value;
+                if (!username.trim() || !password.trim()) { errorMessage.value = "请输入用户名和密码"; isLoading.value = false; return; }
+                
+                const cleanUsername = username.trim();
+                
+                try {
+                    let user;
+                    if(isRegistering.value) {
+                         const { data: exist } = await sb.from('chat_users').select('id').eq('username', cleanUsername).maybeSingle();
+                         if(exist) throw new Error("用户名已存在");
+                         const { data: newUser, error } = await sb.from('chat_users').insert({ username: cleanUsername, password }).select().single();
+                         if(error) throw error; user = newUser;
+                    } else {
+                         const { data, error } = await sb.from('chat_users').select('*').eq('username', cleanUsername).maybeSingle();
+                         if(error || !data || data.password !== password) throw new Error("用户不存在或密码错误");
+                         user = data;
+                    }
+                    currentUser.value = user; localStorage.setItem('11s_user', JSON.stringify(user));
+                    loadFriends(); startPolling(); setupRealtime();
+                } catch(e) { errorMessage.value = e.message || "登录失败"; }
+                isLoading.value = false;
+            };
+            
+            const logout = () => { localStorage.removeItem('11s_user'); location.reload(); };
+            const toggleMode = () => isRegistering.value = !isRegistering.value;
+            const addFriendPrompt = async () => {
+                const name = prompt("输入好友用户名:");
+                if(!name) return;
+                const { data: target } = await sb.from('chat_users').select('*').eq('username', name.trim()).maybeSingle();
+                if(target) {
+                    if (target.id === currentUser.value.id) { alert("不能添加自己"); return; }
+                    await sb.from('chat_friends').insert({ user_id: currentUser.value.id, friend_id: target.id });
+                    alert("添加成功"); loadFriends();
+                } else alert("用户不存在");
+            };
+            const addEmoji = (em) => newMessage.value += em;
+            const scrollToBottom = () => nextTick(() => { const c = document.getElementById('msg-container'); if(c) c.scrollTop = c.scrollHeight; });
             const formatTime = (iso) => { const d = new Date(iso); return `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; };
 
             return {
-                currentUser, loginForm, isRegistering, isLoading, errorMessage, friendError, friends, currentChat, messages, newMessage,
-                showAddFriendModal, friendNameInput, isConnected, showEmoji, emojis, previewImg,
-                handleLogin, logout, toggleMode, addFriend, selectChat, sendMessage, formatTime, 
-                addEmoji, triggerFileUpload, handleFileUpload
+                currentUser, loginForm, isRegistering, isLoading, errorMessage, friends, currentChat, messages, newMessage,
+                isConnected, showEmoji, EMOJIS, previewImg, contextMenu, canRecall, isRecording,
+                handleLogin, logout, toggleMode, addFriendPrompt, selectChat, sendMessage, formatTime, 
+                addEmoji, triggerFileUpload, handleFileUpload, startRecord, stopRecord, playVoice,
+                showContextMenu, recallMessage, deleteMessage, closeMenus, markAsRead
             };
         }
     }).mount('#app');
